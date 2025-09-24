@@ -40,6 +40,15 @@ Por que enviar um PDF estático quando posso oferecer uma **experiência imersiv
 | **Qualidade**    | AutoMapper, Injeção de Dependência, Logging estruturado         |
 | **Infra**        | Background Services, Tratamento global de exceções              |
 
+## ☁️ Infraestrutura e Deploy
+
+- **Banco de Dados** hospedado no **Azure SQL Database**  
+- **API Backend** publicada no **Azure App Service**  
+- **Proximos passos** Pipeline CI/CD via Azure DevOps para automação de builds e deploys  
+
+🔗 **Acesse a API em produção:**  _(em construção)_
+
+
 ## 📡 Endpoints Principais
 
 ### Autenticação
