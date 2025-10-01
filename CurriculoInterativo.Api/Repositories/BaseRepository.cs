@@ -13,6 +13,9 @@ namespace CurriculoInterativo.Api.Repositories
             _dbSet = _context.Set<TEntity>();
         }
 
+        public virtual ResumeDbContext GetDbContext() => _context;
+
+        public virtual DbSet<TEntity> GetDbSet() => _dbSet;
         public virtual async Task<IEnumerable<TEntity>> GetAllAsync()
         {
             return await _dbSet.ToListAsync();
@@ -44,6 +47,7 @@ namespace CurriculoInterativo.Api.Repositories
                 await _context.SaveChangesAsync();
             }
         }
+        
     }
 
 }
