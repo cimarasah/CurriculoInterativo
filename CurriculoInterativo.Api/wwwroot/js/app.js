@@ -305,3 +305,7 @@ function addSearchFunctionality() {
 document.addEventListener("DOMContentLoaded", function () {
   setTimeout(addSearchFunctionality, 1000);
 });
+
+function toggleCard(card) {
+    card.classList.toggle('expanded');
+}

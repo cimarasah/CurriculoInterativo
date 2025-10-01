@@ -17,7 +17,7 @@ namespace CurriculoInterativo.Api.Services.ExperienceService
 
         public async Task<List<ExperienceDto>> GetExperiencesAsync()
         {
-            var experiences = await _repository.GetAllAsync();
+            var experiences = await _repository.GetExperiencesWithProjectsAsync();
 
             var experienceDtos = _mapper.Map<List<ExperienceDto>>(experiences);
 
