@@ -2,6 +2,11 @@
 
 > **Um currículo que respira código!** Transformei minha trajetória profissional em uma API RESTful completa, onde recrutadores podem explorar minhas habilidades, projetos e experiências de forma dinâmica e interativa.
 
+## Tela
+
+![V1](CurriculoInterativo.Api/wwwroot/images/tela_v1.png)
+
+
 ## 🎯 O Conceito
 
 Por que enviar um PDF estático quando posso oferecer uma **experiência imersiva**? Esta API serve como backend para um sistema onde:
