@@ -191,6 +191,9 @@ builder.Logging.AddDebug();
 
 var app = builder.Build();
 
+//Configuraçãos para o frontend
+app.UseDefaultFiles();
+app.UseStaticFiles();
 
 
 app.UseCors("AllowFrontend");

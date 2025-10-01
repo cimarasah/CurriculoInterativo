@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cimara Sá - Currículo Interativo API</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-code"></i>
+                    <h1>Cimara Sá API</h1>
+                </div>
+                <div class="version">
+                    <span class="version-badge">v1.0.0</span>
+                </div>
+            </div>
+            <p class="subtitle">Currículo Interativo - Demonstração de Habilidades Técnicas</p>
+        </header>
+
+        <!-- API Info -->
+        <section class="api-info">
+            <h2>Sobre esta API</h2>
+            <p>Esta é uma API RESTful que expõe informações do meu currículo profissional.</p>
+
+
+            <div class="tech-stack">
+                <span class="tech-badge">.NET 8</span>
+                <span class="tech-badge">C#</span>
+                <span class="tech-badge">MVC</span>
+                <span class="tech-badge">Dependency Injection</span>
+                <span class="tech-badge">Azure Sql Server</span>
+                <span class="tech-badge">Migration (code first)</span>
+                <span class="tech-badge">Entity Framework</span>
+                <span class="tech-badge">AutoMapper</span>
+                <span class="tech-badge">JavaScript</span>
+                <span class="tech-badge">HTML/CSS</span>
+
+
+            </div>
+
+            
+            <div class="action-buttons-row">
+
+                <div class="github-link">
+                    <a href="https://github.com/cimarasah/CurriculoInterativo" target="_blank">
+                        <i class="fab fa-github"> </i> Ver Projeto Completo no GitHub
+                    </a>
+                </div>
+                <div class="swagger-link">
+                    <a href="swagger/index.html" target="_blank">
+                        <img src="images/icone-swagger.svg" alt="Swagger" class="swagger-icon">
+                        Acessar API do Projeto  </th>
+                        <i class=" swagger-icon fas fa-external-link-alt "></i>
+                    </a>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- Live Skills Counter -->
+        <!--
+        <section class="skills-counter">
+            <h2><i class="fas fa-clock"></i> Contador de Proficiência em Tempo Real</h2>
+            <p class="counter-description">Powered by Azure Functions - Atualizado a cada segundo</p>
+            <div id="skills-grid" class="skills-grid">
+
+            </div>
+        </section>
+        -->
+        <!-- API Endpoints -->
+        <section class="endpoints">
+            <h2><i class="fas fa-plug"></i> Endpoints Disponíveis</h2>
+
+            <!-- Experiência -->
+           
+            <div class="endpoint-group">
+                <div class="endpoint-header" onclick="toggleEndpoint('experience')">
+                    <span class="method get">GET</span>
+                    <span class="path">/api/experience</span>
+                    <span class="description">Histórico de experiências profissionais</span>
+                    <i class="fas fa-chevron-down toggle-icon"></i>
+                </div>
+                <div id="experience" class="endpoint-content">
+                    <div class="endpoint-actions">
+                        <button onclick="executeEndpoint('experience')" class="try-button">
+                            <i class="fas fa-play"></i> Executar
+                        </button>
+                    </div>
+                    <div id="experience-result" class="result-container"></div>
+                </div>
+            </div>
+
+            <!-- Certificações -->
+            <div class="endpoint-group">
+                <div class="endpoint-header" onclick="toggleEndpoint('certification')">
+                    <span class="method get">GET</span>
+                    <span class="path">/api/certification</span>
+                    <span class="description">Certificações e cursos</span>
+                    <i class="fas fa-chevron-down toggle-icon"></i>
+                </div>
+                <div id="certification" class="endpoint-content">
+                    <div class="endpoint-actions">
+                        <button onclick="executeEndpoint('certification')" class="try-button">
+                            <i class="fas fa-play"></i> Executar
+                        </button>
+                    </div>
+                    <div id="certification-result" class="result-container"></div>
+                </div>
+            </div>
+
+            <!-- Skills -->
+            <div class="endpoint-group">
+                <div class="endpoint-header" onclick="toggleEndpoint('skill')">
+                    <span class="method get">GET</span>
+                    <span class="path">/api/skill</span>
+                    <span class="description">Habilidades técnicas</span>
+                    <i class="fas fa-chevron-down toggle-icon"></i>
+                </div>
+                <div id="skill" class="endpoint-content">
+                    <div class="endpoint-actions">
+                        <button onclick="executeEndpoint('skill')" class="try-button">
+                            <i class="fas fa-play"></i> Executar
+                        </button>
+                    </div>
+                    <div id="skill-result" class="result-container"></div>
+                </div>
+            </div>
+
+            <!-- Projetos -->
+            <div class="endpoint-group">
+                <div class="endpoint-header" onclick="toggleEndpoint('projeto')">
+                    <span class="method get">GET</span>
+                    <span class="path">/api/projeto</span>
+                    <span class="description">Projetos desenvolvidos</span>
+                    <i class="fas fa-chevron-down toggle-icon"></i>
+                </div>
+                <div id="projeto" class="endpoint-content">
+                    <div class="endpoint-actions">
+                        <button onclick="executeEndpoint('projeto')" class="try-button">
+                            <i class="fas fa-play"></i> Executar
+                        </button>
+                    </div>
+                    <div id="projeto-result" class="result-container"></div>
+                </div>
+            </div>
+
+            <!-- Contato -->
+            <div class="endpoint-group">
+                <div class="endpoint-header" onclick="toggleEndpoint('contact')">
+                    <span class="method get">GET</span>
+                    <span class="path">/api/contact</span>
+                    <span class="description">Informações de contato</span>
+                    <i class="fas fa-chevron-down toggle-icon"></i>
+                </div>
+                <div id="contact" class="endpoint-content">
+                    <div class="endpoint-actions">
+                        <button onclick="executeEndpoint('contact')" class="try-button">
+                            <i class="fas fa-play"></i> Executar
+                        </button>
+                    </div>
+                    <div id="contact-result" class="result-container"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>Desenvolvido por Cimara Sá - Demonstração de habilidades</p>
+            <div class="footer-links">
+                <a href="mailto:cimarasah@gmail.com"><i class="fas fa-envelope"></i></a>
+                <a href="https://linkedin.com/in/cimarasa" target="_blank"><i class="fab fa-linkedin"></i></a>
+            </div>
+        </footer>
+    </div>
+
+    <script src="js/app.js"></script>
+</body>
+</html>
+
