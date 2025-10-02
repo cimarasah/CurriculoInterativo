@@ -1,311 +1,283 @@
-// Configurações da API
-const API_BASE_URL = "http://localhost:5083/api";
-const AZURE_FUNCTION_URL =
-  "https://your-azure-function.azurewebsites.net/api/CalcularProficiencia";
-
-// Estado da aplicação
-let skillsUpdateInterval;
+const API_BASE_URL = 'http://localhost:5083/api';
 
 // Inicialização
-document.addEventListener("DOMContentLoaded", function () {
-  initializeApp();
+document.addEventListener('DOMContentLoaded', function () {
+    loadDashboard();
 });
 
-function initializeApp() {
-  console.log("Inicializando aplicação...");
-  loadSkillsCounter();
-  startSkillsUpdateTimer();
-}
-
-// Função para alternar visibilidade dos endpoints
-function toggleEndpoint(endpointId) {
-  const endpointGroup = document.querySelector(`#${endpointId}`).parentElement;
-  endpointGroup.classList.toggle("active");
-}
-
-// Função para executar endpoints da API
-async function executeEndpoint(endpoint) {
-  const resultContainer = document.getElementById(`${endpoint}-result`);
-  resultContainer.classList.add("show");
-
-  try {
-    showLoading(resultContainer);
-
-    const response = await fetch(`${API_BASE_URL}/${endpoint}`);
-
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+async function loadDashboard() {
+    try {
+        await Promise.all([
+            loadExperiences(),
+            loadProjects(),
+            loadSkills(),
+            loadCertifications()
+        ]);
+    } catch (error) {
+        console.error('Erro ao carregar dashboard:', error);
     }
-
-    const data = await response.json();
-    showResult(resultContainer, data, "success");
-  } catch (error) {
-    console.error(`Erro ao executar endpoint ${endpoint}:`, error);
-    showResult(resultContainer, { error: error.message }, "error");
-  }
 }
 
-// Função para carregar o contador de skills
-async function loadSkillsCounter() {
-  const skillsGrid = document.getElementById("skills-grid");
+// Timeline de Experiências
+async function loadExperiences() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/experience`);
 
-  try {
-    // Primeiro, buscar as skills da API local
-   // const skillsResponse = await fetch(`${API_BASE_URL}/skill`);
+        if (!response.ok) {
+            throw new Error(`Erro de rede: ${response.status} ${response.statusText}`);
+        }
 
-   // if (!skillsResponse.ok) {
-   //   throw new Error("Erro ao carregar skills da API local");
-   // }
+        const experiences = await response.json();
+        const logoCollection = document.getElementById('company-logo-collection');
 
-   // const skills = await skillsResponse.json();
+        if (!logoCollection) {
+            console.error("Elemento 'company-logo-collection' não encontrado. Verifique seu index.html.");
+            return;
+        }
 
-    // Depois, buscar os tempos calculados da Azure Function
-   // await updateSkillsTimes(skills);
-  } catch (error) {
-    console.error("Erro ao carregar contador de skills:", error);
-    showSkillsError();
-  }
-}
+        logoCollection.innerHTML = '';
+        experiences.sort((a, b) => new Date(b.startDate) - new Date(a.startDate));
 
-// Função para atualizar os tempos das skills
-async function updateSkillsTimes(skills) {
-  const skillsGrid = document.getElementById("skills-grid");
+        experiences.forEach(exp => {
+            const logoItem = document.createElement('div');
+            logoItem.className = 'company-logo-item';
+            logoItem.setAttribute('title', exp.company);
 
-  try {
-    // Simular chamada para Azure Function (já que não temos uma real rodando)
-    const skillsWithTimes = await simulateAzureFunctionCall(skills);
-
-    // Limpar grid atual
-    skillsGrid.innerHTML = "";
-
-    // Renderizar skills com tempos atualizados
-    skillsWithTimes.forEach((skill) => {
-      const skillCard = createSkillCard(skill);
-      skillsGrid.appendChild(skillCard);
-    });
-  } catch (error) {
-    console.error("Erro ao atualizar tempos das skills:", error);
-  }
-}
-
-// Simulação da Azure Function (para demonstração)
-async function simulateAzureFunctionCall(skills) {
-  return skills.map((skill) => {
-    const dataInicio = new Date(skill.dataInicio);
-    const agora = new Date();
-    const tempo = calculateTimeDifference(dataInicio, agora);
-
-    return {
-      ...skill,
-      tempoExperiencia: tempo,
-    };
-  });
-}
-
-// Função para calcular diferença de tempo
-function calculateTimeDifference(startDate, endDate) {
-  const diff = endDate - startDate;
-
-  const anos = Math.floor(diff / (1000 * 60 * 60 * 24 * 365));
-  const meses = Math.floor(
-    (diff % (1000 * 60 * 60 * 24 * 365)) / (1000 * 60 * 60 * 24 * 30)
-  );
-  const dias = Math.floor(
-    (diff % (1000 * 60 * 60 * 24 * 30)) / (1000 * 60 * 60 * 24)
-  );
-  const horas = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-  const minutos = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-  const segundos = Math.floor((diff % (1000 * 60)) / 1000);
-
-  return {
-    anos,
-    meses,
-    dias,
-    horas,
-    minutos,
-    segundos,
-    tempoFormatado: formatTime(anos, meses, dias, horas, minutos, segundos),
-  };
-}
-
-// Função para formatar tempo
-function formatTime(anos, meses, dias, horas, minutos, segundos) {
-  const partes = [];
-
-  if (anos > 0) partes.push(`${anos} ${anos === 1 ? "ano" : "anos"}`);
-  if (meses > 0) partes.push(`${meses} ${meses === 1 ? "mês" : "meses"}`);
-  if (dias > 0) partes.push(`${dias} ${dias === 1 ? "dia" : "dias"}`);
-  if (horas > 0) partes.push(`${horas} ${horas === 1 ? "hora" : "horas"}`);
-  if (minutos > 0)
-    partes.push(`${minutos} ${minutos === 1 ? "minuto" : "minutos"}`);
-  partes.push(`${segundos} ${segundos === 1 ? "segundo" : "segundos"}`);
-
-  return partes.join(", ");
-}
-
-// Função para criar card de skill
-function createSkillCard(skill) {
-  const card = document.createElement("div");
-  card.className = "skill-card";
-
-  card.innerHTML = `
-        <div class="skill-name">${skill.nome}</div>
-        <div class="skill-time">${skill.tempoExperiencia.tempoFormatado}</div>
-        <div class="skill-category">${skill.categoria}</div>
-    `;
-
-  return card;
-}
-
-// Função para iniciar timer de atualização das skills
-function startSkillsUpdateTimer() {
-  // Atualizar a cada segundo
-  skillsUpdateInterval = setInterval(() => {
-    loadSkillsCounter();
-  }, 1000);
-}
-
-// Função para mostrar loading
-function showLoading(container) {
-  container.innerHTML = '<div class="loading">Carregando...</div>';
-}
-
-// Função para mostrar resultado
-function showResult(container, data, type) {
-  const jsonString = JSON.stringify(data, null, 2);
-  container.innerHTML = `<pre class="${type}">${jsonString}</pre>`;
-}
-
-// Função para mostrar erro nas skills
-function showSkillsError() {
-  const skillsGrid = document.getElementById("skills-grid");
-  skillsGrid.innerHTML = `
-        <div class="skill-card" style="background: #e74c3c;">
-            <div class="skill-name">Erro ao carregar skills</div>
-            <div class="skill-time">Verifique se a API está rodando</div>
-            <div class="skill-category">Erro</div>
-        </div>
-    `;
-}
-
-// Função para parar timer (útil para cleanup)
-function stopSkillsUpdateTimer() {
-  if (skillsUpdateInterval) {
-    clearInterval(skillsUpdateInterval);
-  }
-}
-
-// Cleanup quando a página é fechada
-window.addEventListener("beforeunload", function () {
-  stopSkillsUpdateTimer();
-});
-
-// Função para testar conectividade com a API
-async function testApiConnection() {
-  try {
-    const response = await fetch(`${API_BASE_URL}/Contact`);
-    if (response.ok) {
-      console.log("✅ API está respondendo");
-      return true;
-    } else {
-      console.log("❌ API retornou erro:", response.status);
-      return false;
-    }
-  } catch (error) {
-    console.log("❌ Erro ao conectar com a API:", error.message);
-    return false;
-  }
-}
-
-// Executar teste de conectividade na inicialização
-testApiConnection().then((isConnected) => {
-  if (!isConnected) {
-    console.log(
-      "💡 Dica: Certifique-se de que a API .NET Core está rodando em http://localhost:5000"
-    );
-  }
-});
-
-// Adicionar funcionalidade de busca (bonus)
-//function addSearchFunctionality() {
-//  const searchInput = document.createElement("input");
-//  searchInput.type = "text";
-//  searchInput.placeholder = "Buscar endpoints...";
-//  searchInput.className = "search-input";
-
-//  searchInput.addEventListener("input", function (e) {
-//    const searchTerm = e.target.value.toLowerCase();
-//    const endpointGroups = document.querySelectorAll(".endpoint-group");
-
-//    endpointGroups.forEach((group) => {
-//      const path = group.querySelector(".path").textContent.toLowerCase();
-//      const description = group
-//        .querySelector(".description")
-//        .textContent.toLowerCase();
-
-//      if (path.includes(searchTerm) || description.includes(searchTerm)) {
-//        group.style.display = "block";
-//      } else {
-//        group.style.display = "none";
-//      }
-//    });
-//  });
-
-//  const endpointsSection = document.querySelector(".endpoints");
-//  const endpointsTitle = endpointsSection.querySelector("h2");
-//  endpointsTitle.after(searchInput);
-//}
-
-function addSearchFunctionality() {
-    // Criar container do input
-    const searchContainer = document.createElement("div");
-    searchContainer.className = "search-container";
-
-    // Criar input de busca
-    const searchInput = document.createElement("input");
-    searchInput.type = "text";
-    searchInput.placeholder = "Buscar endpoints...";
-    searchInput.className = "search-input";
-
-    // Criar ícone de lupa (Font Awesome)
-    const searchIcon = document.createElement("i");
-    searchIcon.className = "fas fa-search"; // use Font Awesome
-
-    // Adicionar input e ícone ao container
-    searchContainer.appendChild(searchInput);
-    searchContainer.appendChild(searchIcon);
-
-    // Inserir container após o título da seção de endpoints
-    const endpointsSection = document.querySelector(".endpoints");
-    const endpointsTitle = endpointsSection.querySelector("h2");
-    endpointsTitle.after(searchContainer);
-
-    // Função de filtragem dos endpoints
-    searchInput.addEventListener("input", function (e) {
-        const searchTerm = e.target.value.toLowerCase();
-        const endpointGroups = document.querySelectorAll(".endpoint-group");
-
-        endpointGroups.forEach((group) => {
-            const path = group.querySelector(".path").textContent.toLowerCase();
-            const description = group
-                .querySelector(".description")
-                .textContent.toLowerCase();
-
-            if (path.includes(searchTerm) || description.includes(searchTerm)) {
-                group.style.display = "block";
+            // Determina se usará a imagem ou o nome da empresa
+            if (exp.imgLogo) {
+                // Caso 1: Logo em Base64 está disponível
+                const imgBase64Src = `data:image/jpeg;base64,${exp.imgLogo}`;
+                logoItem.innerHTML = `
+                    <img src="${imgBase64Src}" alt="${exp.company} Logo" class="logo-image">
+                    <span class="logo-name">${exp.company}</span>
+                `;
             } else {
-                group.style.display = "none";
+                // Caso 2: Logo NÃO está disponível -> Exibir Sigla da Empresa
+
+                // Função para criar a sigla (ex: "ACME Corp" -> "AC")
+                const initials = exp.company
+                    .split(' ') // Divide por espaço
+                    .map(word => word[0]) // Pega a primeira letra de cada palavra
+                    .join('') // Junta as letras
+                    .toUpperCase()
+                    .slice(0, 2); // Limita a duas letras (para não poluir)
+
+                logoItem.innerHTML = `
+                    <div class="logo-initials-fallback">
+                        ${initials}
+                    </div>
+                    <span class="logo-name">${exp.company}</span>
+                `;
             }
+
+            logoCollection.appendChild(logoItem);
         });
-    });
+
+    } catch (error) {
+        console.error('Erro ao carregar logos das empresas:', error);
+    }
+}
+// Projetos E Timeline de Projetos
+async function loadProjects() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/project/projects-with-company`);
+        const projects = await response.json();
+
+        document.getElementById('total-projects').textContent = projects.length;
+
+        const grid = document.getElementById('projects-grid');
+        grid.innerHTML = '';
+
+        const timeline = document.getElementById('timeline');
+        timeline.innerHTML = ''; // Limpa o timeline antes de preencher com projetos
+
+        // Ordena os projetos pela data de início (mais recente primeiro para a timeline)
+        projects.sort((a, b) => new Date(b.startDate) - new Date(a.startDate));
+
+        projects.forEach(project => {
+            const startDate = new Date(project.startDate);
+            const endDate = project.endDate ? new Date(project.endDate) : new Date();
+            const duration = calculateDuration(startDate, endDate);
+
+            // --- Construção do Card de Projeto (Para a seção de Projetos em Destaque) ---
+            const card = document.createElement('div');
+            card.className = 'project-card';
+            card.innerHTML = `
+                        <div class="project-header">
+                            <div class="project-name">${project.name}</div>
+                            <div class="project-position">${project.position}</div>
+                            <div class="project-duration">
+                                <i class="fas fa-clock"></i> ${duration}
+                            </div>
+                        </div>
+                        <p style="color: #555; margin-bottom: 15px;">${project.description}</p>
+                        <div class="skills-tags" id="project-skills-${project.id}"></div>
+                    `;
+            grid.appendChild(card);
+
+            // Adicionar skills ao card
+            const skillsContainer = document.getElementById(`project-skills-${project.id}`);
+            if (project.skills && project.skills.length > 0) {
+                project.skills.forEach(skill => {
+                    const tag = document.createElement('span');
+                    tag.className = `skill-tag ${getCategoryClass(skill.category)}`;
+                    tag.textContent = skill.name;
+                    skillsContainer.appendChild(tag);
+                });
+            }
+
+            
+            const companyName = project.experience.company || 'Empresa não informada'; 
+
+            const timelineItem = document.createElement('div');
+            timelineItem.className = 'timeline-item';
+            timelineItem.innerHTML = `
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-content">
+                            <div class="timeline-date">
+                                ${formatDate(startDate)} - ${project.endDate ? formatDate(endDate) : 'Presente'} (${duration})
+                            </div>
+                            <div class="timeline-project">${project.name}</div> 
+                            <div class="timeline-location">
+                                <i class="fas fa-building"></i> ${companyName}
+                            </div>
+                            <p style="margin-top: 10px; color: #555;">Posição: ${project.position}</p> 
+                        </div>
+                    `;
+            timeline.appendChild(timelineItem);
+        });
+    } catch (error) {
+        console.error('Erro ao carregar projetos e timeline:', error);
+    }
 }
 
+// Skills
+async function loadSkills() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/skill`);
+        const skills = await response.json();
 
-// Adicionar funcionalidade de busca após carregamento
-document.addEventListener("DOMContentLoaded", function () {
-  setTimeout(addSearchFunctionality, 1000);
+        document.getElementById('total-skills').textContent = skills.length;
+
+        const list = document.getElementById('skills-list');
+        list.innerHTML = '';
+
+        skills.sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
+
+        skills.forEach(skill => {
+            const startDate = new Date(skill.startDate);
+            const now = new Date();
+            const timeExperience = calculateDetailedDuration(startDate, now);
+            const proficiency = calculateProficiency(startDate);
+
+            const item = document.createElement('div');
+            item.className = 'skill-item';
+            item.innerHTML = `
+                        <div class="skill-header">
+                            <span class="skill-name">${skill.name}</span>
+                            <span class="skill-time">${timeExperience}</span>
+                        </div>
+                        <div class="skill-bar">
+                            <div class="skill-progress" style="width: 0%" data-width="${proficiency}%"></div>
+                        </div>
+                    `;
+            list.appendChild(item);
+        });
+
+        // Animar barras
+        setTimeout(() => {
+            document.querySelectorAll('.skill-progress').forEach(bar => {
+                bar.style.width = bar.dataset.width;
+            });
+        }, 100);
+    } catch (error) {
+        console.error('Erro ao carregar skills:', error);
+    }
+}
+
+// Certificações
+async function loadCertifications() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/certification`);
+        const certs = await response.json();
+
+        document.getElementById('total-certs').textContent = certs.length;
+    } catch (error) {
+        console.error('Erro ao carregar certificações:', error);
+    }
+}
+
+// Funções auxiliares
+function calculateDuration(start, end) {
+    const months = (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth());
+    const years = Math.floor(months / 12);
+    const remainingMonths = months % 12;
+
+    if (years > 0 && remainingMonths > 0) {
+        return `${years} ano${years > 1 ? 's' : ''} e ${remainingMonths} mês${remainingMonths > 1 ? 'es' : ''}`;
+    } else if (years > 0) {
+        return `${years} ano${years > 1 ? 's' : ''}`;
+    } else {
+        return `${remainingMonths} mês${remainingMonths > 1 ? 'es' : ''}`;
+    }
+}
+
+function calculateDetailedDuration(start, end) {
+    const years = end.getFullYear() - start.getFullYear();
+    const months = end.getMonth() - start.getMonth();
+    const totalMonths = years * 12 + months;
+
+    const y = Math.floor(totalMonths / 12);
+    const m = totalMonths % 12;
+
+    if (y > 0 && m > 0) {
+        return `${y} ano${y > 1 ? 's' : ''} e ${m} mês${m > 1 ? 'es' : ''}`;
+    } else if (y > 0) {
+        return `${y} ano${y > 1 ? 's' : ''}`;
+    } else {
+        return `${m} mês${m > 1 ? 'es' : ''}`;
+    }
+}
+
+function calculateProficiency(startDate) {
+    const now = new Date();
+    const months = (now.getFullYear() - startDate.getFullYear()) * 12 + (now.getMonth() - startDate.getMonth());
+    return Math.min(100, (months / 60) * 100);
+}
+
+function formatDate(date) {
+    return date.toLocaleDateString('pt-BR', { month: 'short', year: 'numeric' });
+}
+
+function getCategoryClass(category) {
+    const map = {
+        0: 'backend',
+        1: 'frontend',
+        2: 'database',
+        3: 'cloud',
+        4: 'backend'
+    };
+    return map[category] || 'backend';
+}
+
+// Download PDF
+function downloadPDF() {
+    alert('Funcionalidade de download de PDF será implementada em breve!');
+}
+
+// Form de sugestões
+document.getElementById('suggestions-form').addEventListener('submit', async function (e) {
+    e.preventDefault();
+
+    const loading = document.getElementById('suggestion-loading');
+    const form = e.target;
+
+    loading.classList.add('show');
+
+    // Simular envio
+    setTimeout(() => {
+        alert('Obrigado pela sua sugestão! Ela será analisada em breve.');
+        form.reset();
+        loading.classList.remove('show');
+    }, 1500);
 });
-
-function toggleCard(card) {
-    card.classList.toggle('expanded');
-}

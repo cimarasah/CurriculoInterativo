@@ -18,7 +18,7 @@ namespace CurriculoInterativo.Api.Services.ProjectService
 
         public async Task<List<ProjectDto>> GetProjectsAsync()
         {
-            var projects = await _repository.GetAllAsync();
+            var projects = await _repository.GetAllAsync();             
 
             var projectDtos = _mapper.Map<List<ProjectDto>>(projects);
 
@@ -30,6 +30,14 @@ namespace CurriculoInterativo.Api.Services.ProjectService
             var projects = await _repository.GetBySkillAsync(skill);
 
             return _mapper.Map<IEnumerable<ProjectDto>>(projects);
-        }   
+        }
+        public async Task<List<ProjectDto>> GetProjectsWithCompanyAsync()
+        {
+            var projects = await _repository.GetProjectsWithCompany();
+
+            var projectDtos = _mapper.Map<List<ProjectDto>>(projects);
+
+            return projectDtos;
+        }
     }
 }

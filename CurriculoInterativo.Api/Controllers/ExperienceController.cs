@@ -21,11 +21,11 @@ namespace CurriculoInterativo.Api.Controllers
         /// </summary>
         /// <returns>Lista de experiências profissionais</returns>
         [HttpGet]
-        public async Task<ActionResult<List<ExperienceDto>>> GetExperiences()
+        public async Task<ActionResult<List<ExperienceLogoDto>>> GetExperiences()
         {
             try
             {
-                var e = await _experienceService.GetExperiencesAsync();
+                var e = await _experienceService.GetExperiencesLogoAsync();
                 return Ok(e);
             }
             catch (Exception ex)

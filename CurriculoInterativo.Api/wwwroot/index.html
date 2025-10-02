@@ -26,155 +26,145 @@
         <!-- API Info -->
         <section class="api-info">
             <h2>Sobre esta API</h2>
-            <p>Esta é uma API RESTful que expõe informações do meu currículo profissional.</p>
-
+            <p>Esta é uma API RESTful que expõe informações do meu currículo profissional de forma dinâmica e interativa.</p>
 
             <div class="tech-stack">
                 <span class="tech-badge">.NET 8</span>
                 <span class="tech-badge">C#</span>
                 <span class="tech-badge">MVC</span>
                 <span class="tech-badge">Dependency Injection</span>
-                <span class="tech-badge">Azure Sql Server</span>
+                <span class="tech-badge">Azure SQL Server</span>
                 <span class="tech-badge">Migration (code first)</span>
                 <span class="tech-badge">Entity Framework</span>
                 <span class="tech-badge">AutoMapper</span>
                 <span class="tech-badge">JavaScript</span>
                 <span class="tech-badge">HTML/CSS</span>
-
-
             </div>
-            
 
             <div class="action-buttons-row">
-
                 <div class="github-link">
                     <a href="https://github.com/cimarasah/CurriculoInterativo" target="_blank">
-                        <i class="fab fa-github"> </i> Ver Projeto Completo no GitHub
+                        <i class="fab fa-github"></i> Ver Projeto Completo no GitHub
+                        &nbsp; <i class="fas fa-external-link-alt swagger-icon"></i>
                     </a>
                 </div>
                 <div class="swagger-link">
                     <a href="swagger/index.html" target="_blank">
                         <img src="images/icone-swagger.svg" alt="Swagger" class="swagger-icon">
-                        Acessar API do Projeto  </th>
-                        <i class=" swagger-icon fas fa-external-link-alt "></i>
+                        Acessar API do Projeto
+                        &nbsp; <i class="fas fa-external-link-alt swagger-icon"></i>
                     </a>
                 </div>
+                <div class="pdf-link">
+                    <button class="btn-download" onclick="downloadPDF()">
+                        <i class="fas fa-download"></i> Baixar PDF
+                    </button>
+                </div>
             </div>
-
         </section>
 
-        <!-- Live Skills Counter -->
-        <!--
-        <section class="skills-counter">
-            <h2><i class="fas fa-clock"></i> Contador de Proficiência em Tempo Real</h2>
-            <p class="counter-description">Powered by Azure Functions - Atualizado a cada segundo</p>
-            <div id="skills-grid" class="skills-grid">
-
+        <!-- Companys -->
+        <section class="logos-section">
+            <h2 class="section-title">
+                <i class="fas fa-chart-line"></i>
+                Empresas Onde Trabalhei
+            </h2>
+            <div id="company-logo-collection" class="logo-grid">
             </div>
         </section>
-        -->
-        <!-- API Endpoints -->
-        <section class="endpoints">
-            <h2><i class="fas fa-plug"></i> Endpoints Disponíveis</h2>
 
-            <!-- Experiência -->
-           
-            <div class="endpoint-group">
-                <div class="endpoint-header" onclick="toggleEndpoint('experience')">
-                    <span class="method get">GET</span>
-                    <span class="path">/api/experience</span>
-                    <span class="description">Histórico de experiências profissionais</span>
-                    <i class="fas fa-chevron-down toggle-icon"></i>
-                </div>
-                <div id="experience" class="endpoint-content">
-                    <div class="endpoint-actions">
-                        <button onclick="executeEndpoint('experience')" class="try-button">
-                            <i class="fas fa-play"></i> Executar
-                        </button>
-                    </div>
-                    <div id="experience-result" class="result-container"></div>
-                </div>
+        <!-- Stats -->
+        <div class="stats-grid" id="stats-grid">
+            <div class="stat-card">
+                <i class="fas fa-briefcase"></i>
+                <div class="stat-value" id="years-experience">10+</div>
+                <div class="stat-label">Anos de Experiência</div>
             </div>
-
-            <!-- Certificações -->
-            <div class="endpoint-group">
-                <div class="endpoint-header" onclick="toggleEndpoint('certification')">
-                    <span class="method get">GET</span>
-                    <span class="path">/api/certification</span>
-                    <span class="description">Certificações e cursos</span>
-                    <i class="fas fa-chevron-down toggle-icon"></i>
-                </div>
-                <div id="certification" class="endpoint-content">
-                    <div class="endpoint-actions">
-                        <button onclick="executeEndpoint('certification')" class="try-button">
-                            <i class="fas fa-play"></i> Executar
-                        </button>
-                    </div>
-                    <div id="certification-result" class="result-container"></div>
-                </div>
+            <div class="stat-card">
+                <i class="fas fa-project-diagram"></i>
+                <div class="stat-value" id="total-projects">0</div>
+                <div class="stat-label">Projetos Concluídos</div>
             </div>
-
-            <!-- Skills -->
-            <div class="endpoint-group">
-                <div class="endpoint-header" onclick="toggleEndpoint('skill')">
-                    <span class="method get">GET</span>
-                    <span class="path">/api/skill</span>
-                    <span class="description">Habilidades técnicas</span>
-                    <i class="fas fa-chevron-down toggle-icon"></i>
-                </div>
-                <div id="skill" class="endpoint-content">
-                    <div class="endpoint-actions">
-                        <button onclick="executeEndpoint('skill')" class="try-button">
-                            <i class="fas fa-play"></i> Executar
-                        </button>
-                    </div>
-                    <div id="skill-result" class="result-container"></div>
-                </div>
+            <div class="stat-card">
+                <i class="fas fa-certificate"></i>
+                <div class="stat-value" id="total-certs">0</div>
+                <div class="stat-label">Certificações</div>
             </div>
-
-            <!-- Projetos -->
-            <div class="endpoint-group">
-                <div class="endpoint-header" onclick="toggleEndpoint('project')">
-                    <span class="method get">GET</span>
-                    <span class="path">/api/project</span>
-                    <span class="description">Projetos desenvolvidos</span>
-                    <i class="fas fa-chevron-down toggle-icon"></i>
-                </div>
-                <div id="project" class="endpoint-content">
-                    <div class="endpoint-actions">
-                        <button onclick="executeEndpoint('project')" class="try-button">
-                            <i class="fas fa-play"></i> Executar
-                        </button>
-                    </div>
-                    <div id="project-result" class="result-container"></div>
-                </div>
+            <div class="stat-card">
+                <i class="fas fa-code"></i>
+                <div class="stat-value" id="total-skills">0</div>
+                <div class="stat-label">Tecnologias</div>
             </div>
+        </div>
 
-            <!-- Contato -->
-            <div class="endpoint-group">
-                <div class="endpoint-header" onclick="toggleEndpoint('contact')">
-                    <span class="method get">GET</span>
-                    <span class="path">/api/contact</span>
-                    <span class="description">Informações de contato</span>
-                    <i class="fas fa-chevron-down toggle-icon"></i>
+        <!-- Timeline -->
+        <section class="timeline-section">
+            <h2 class="section-title">
+                <i class="fas fa-history"></i>
+                Linha do Tempo Profissional
+            </h2>
+            <div class="timeline" id="timeline"></div>
+        </section>
+
+        <!-- Projects -->
+        <section class="timeline-section">
+            <h2 class="section-title">
+                <i class="fas fa-laptop-code"></i>
+                Projetos em Destaque
+            </h2>
+            <div class="projects-grid" id="projects-grid"></div>
+        </section>
+
+        <!-- Skills -->
+        <section class="skills-section">
+            <h2 class="section-title">
+                <i class="fas fa-chart-line"></i>
+                Proficiência em Tecnologias
+            </h2>
+            <div id="skills-list"></div>
+        </section>
+
+
+
+
+        <!-- Suggestions -->
+        <section class="suggestions-section">
+            <h2 class="section-title">
+                <i class="fas fa-lightbulb"></i>
+                Sugestões e Feedback
+            </h2>
+            <p style="color: #7f8c8d; margin-bottom: 20px;">
+                Sua opinião é importante! Deixe sugestões de melhorias ou funcionalidades.
+            </p>
+            <form id="suggestions-form">
+                <div class="form-group">
+                    <label for="suggestion-name">Nome (opcional)</label>
+                    <input type="text" id="suggestion-name" class="form-control" placeholder="Seu nome">
                 </div>
-                <div id="contact" class="endpoint-content">
-                    <div class="endpoint-actions">
-                        <button onclick="executeEndpoint('contact')" class="try-button">
-                            <i class="fas fa-play"></i> Executar
-                        </button>
-                    </div>
-                    <div id="contact-result" class="result-container"></div>
+                <div class="form-group">
+                    <label for="suggestion-email">Email (opcional)</label>
+                    <input type="email" id="suggestion-email" class="form-control" placeholder="seu@email.com">
                 </div>
+                <div class="form-group">
+                    <label for="suggestion-text">Sugestão *</label>
+                    <textarea id="suggestion-text" class="form-control" placeholder="Descreva sua sugestão ou feedback..." required></textarea>
+                </div>
+                <button type="submit" class="btn-submit">
+                    <i class="fas fa-paper-plane"></i> Enviar Sugestão
+                </button>
+            </form>
+            <div class="loading" id="suggestion-loading">
+                <i class="fas fa-spinner fa-spin"></i> Enviando...
             </div>
         </section>
 
         <!-- Footer -->
         <footer class="footer">
-            <p>Desenvolvido por Cimara Sá - Demonstração de habilidades</p>
+            <p>Desenvolvido com <i class="fas fa-heart" style="color: #e74c3c;"></i> por Cimara Sá</p>
             <div class="footer-links">
-                <a href="mailto:cimarasah@gmail.com"><i class="fas fa-envelope"></i></a>
-                <a href="https://linkedin.com/in/cimarasa" target="_blank"><i class="fab fa-linkedin"></i></a>
+                <a href="mailto:cimarasah@gmail.com" title="Email"><i class="fas fa-envelope"></i></a>
+                <a href="https://linkedin.com/in/cimarasa" target="_blank" title="LinkedIn"><i class="fab fa-linkedin"></i></a>
+                <a href="https://github.com/cimarasah" target="_blank" title="GitHub"><i class="fab fa-github"></i></a>
             </div>
         </footer>
     </div>
@@ -182,4 +172,3 @@
     <script src="js/app.js"></script>
 </body>
 </html>
-

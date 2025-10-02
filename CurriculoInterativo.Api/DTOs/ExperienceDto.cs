@@ -10,7 +10,8 @@ namespace CurriculoInterativo.Api.DTOs
         public DateTime? EndDate { get; set; }
         public string Location { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
-        public List<ProjectDto> Projects { get; set; } = new();
+        public List<ProjectDto> Projects { get; set; } = [];
+        public string ImgLogo { get; set; } = string.Empty;
     }
 }
 
