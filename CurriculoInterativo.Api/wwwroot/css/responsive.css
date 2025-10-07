@@ -1,0 +1,44 @@
+/* Responsividade Geral */
+@media (max-width: 768px) {
+    .container {
+        padding: 10px;
+    }
+
+    .header-content {
+        flex-direction: column;
+        text-align: center;
+        gap: 15px;
+    }
+
+    .logo h1 {
+        font-size: 2rem;
+    }
+
+    .action-buttons-row {
+        flex-direction: column;
+    }
+
+        .action-buttons-row > div {
+            min-width: 100%;
+        }
+
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .section-title {
+        font-size: 1.8rem;
+    }
+}
+
+@media (max-width: 600px) {
+    .logo-image,
+    .logo-initials-fallback {
+        width: 60px;
+        height: 60px;
+    }
+
+    .logo-name {
+        font-size: 0.8rem;
+    }
+}

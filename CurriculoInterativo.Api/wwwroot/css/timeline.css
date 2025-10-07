@@ -1,0 +1,163 @@
+﻿/* Seção da timeline */
+.timeline-section {
+    background-color: #fff;
+    border-radius: var(--border-radius);
+    padding: 50px 30px;
+    margin-bottom: 40px;
+    box-shadow: var(--shadow-medium);
+}
+
+/* Linha central */
+.timeline-container {
+    position: relative;
+    margin: 40px auto;
+    padding: 20px 0;
+    width: 90%;
+}
+
+    .timeline-container::before {
+        content: '';
+        position: absolute;
+        left: 50%;
+        top: 0;
+        width: 3px;
+        height: 100%;
+        background: linear-gradient(180deg, #9b6ef3, #d1b3ff);
+        transform: translateX(-50%);
+        border-radius: 3px;
+    }
+
+/* Itens alternados à esquerda e direita */
+.timeline-item {
+    position: relative;
+    width: 50%;
+    padding: 20px 40px;
+    box-sizing: border-box;
+}
+
+    .timeline-item.left {
+        left: 0;
+        text-align: right;
+    }
+
+    .timeline-item.right {
+        left: 50%;
+        text-align: left;
+    }
+
+/* Cards com lilás suave e contraste branco */
+.timeline-card {
+    display: inline-block;
+    background: linear-gradient(135deg, rgba(155, 110, 243, 0.12), rgba(209, 179, 255, 0.25));
+    border-radius: 14px;
+    padding: 18px 22px;
+    box-shadow: 0 4px 12px rgba(155, 110, 243, 0.1);
+    border: 1px solid rgba(155, 110, 243, 0.15);
+    transition: var(--transition);
+    width: 90%;
+    color: var(--text-dark);
+    backdrop-filter: blur(4px);
+}
+
+    .timeline-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 6px 16px rgba(155, 110, 243, 0.2);
+    }
+
+/* Pontos da linha */
+.timeline-dot {
+    position: absolute;
+    top: 25px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #9b6ef3, #d1b3ff);
+    border: 3px solid var(--white);
+    box-shadow: 0 0 0 3px rgba(155, 110, 243, 0.3);
+    z-index: 2;
+}
+
+.timeline-item.left .timeline-dot {
+    right: -9px;
+}
+
+.timeline-item.right .timeline-dot {
+    left: -9px;
+}
+
+/* Conteúdo dos cards */
+.timeline-company {
+    font-weight: 800;
+    font-size: 1rem;
+    color: #4b2e83;
+}
+
+.timeline-period {
+    font-size: 0.85rem;
+    color: #7a6da8;
+}
+
+.timeline-duration {
+    font-size: 0.75rem;
+    color: #9b6ef3;
+    font-weight: 700;
+}
+
+/* Badge de emprego atual */
+.timeline-current-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, #9b6ef3, #c49bff);
+    color: #fff;
+    padding: 3px 8px;
+    border-radius: 8px;
+    font-size: 0.7rem;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        box-shadow: 0 0 12px rgba(155, 110, 243, 0.4);
+    }
+
+    50% {
+        box-shadow: 0 0 18px rgba(155, 110, 243, 0.8);
+    }
+}
+
+/* Título */
+.timeline-section .section-title {
+    text-align: center;
+    color: #6a42c2;
+    font-size: 1.8rem;
+    font-weight: 800;
+    margin-bottom: 30px;
+    position: relative;
+}
+
+
+/* Responsivo */
+@media (max-width: 768px) {
+    .timeline-container::before {
+        left: 8px;
+    }
+
+    .timeline-item {
+        width: 100%;
+        padding-left: 40px;
+        text-align: left !important;
+    }
+
+        .timeline-item.left, .timeline-item.right {
+            left: 0;
+        }
+
+    .timeline-dot {
+        left: 0;
+    }
+
+    .timeline-card {
+        width: calc(100% - 40px);
+    }
+}

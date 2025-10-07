@@ -59,52 +59,69 @@ async function loadCompanyLogos() {
     }
 }
 
-//  Timeline de Experiências
+// Timeline de Experiências (Jornada Profissional - Zig-Zag)
 async function loadExperiencesTimeline() {
     try {
         const response = await fetch(`${API_BASE_URL}/experience`);
         if (!response.ok) throw new Error(`Erro de rede: ${response.status}`);
 
         const experiences = await response.json();
-        const timeline = document.getElementById('timeline');
-        if (!timeline) return;
+        const container = document.getElementById('timeline');
+        container.innerHTML = '';
 
-        timeline.innerHTML = '';
-        const sortedExperiences = [...experiences].sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
+        // Ordenar do mais recente ao mais antigo
+        const sorted = experiences.sort((a, b) => new Date(b.startDate) - new Date(a.startDate));
 
-        sortedExperiences.forEach((exp, index) => {
+        sorted.forEach((exp, index) => {
             const startDate = new Date(exp.startDate);
             const endDate = exp.endDate ? new Date(exp.endDate) : new Date();
             const duration = calculateDuration(startDate, endDate);
-            const isCurrentJob = !exp.endDate;
+            const isCurrent = !exp.endDate;
+            const side = index % 2 === 0 ? 'left' : 'right';
 
             const item = document.createElement('div');
-            item.className = 'timeline-journey-item';
+            item.className = `timeline-item ${side}`;
             item.innerHTML = `
-                <div class="timeline-content">
-                    ${isCurrentJob ? '<span class="timeline-current-badge"><i class="fas fa-briefcase"></i> Atual</span>' : ''}
-                    <div class="timeline-date">
-                        <i class="fas fa-calendar-alt"></i>
-                        ${formatDate(startDate)} - ${isCurrentJob ? 'Presente' : formatDate(endDate)}
-                    </div>
-                    <h3 class="timeline-project">${exp.company}</h3>
-                    <div class="timeline-location">
-                        <i class="fas fa-map-marker-alt"></i>
-                        ${exp.location || 'Localização não informada'}
-                    </div>
-                    <div class="timeline-duration">
-                        <i class="fas fa-clock"></i>
-                        ${duration}
-                    </div>
-                    ${exp.description ? `<p class="timeline-description">${exp.description}</p>` : ''}
+                <span class="timeline-dot"></span>
+                <div class="timeline-card">
+                    ${isCurrent ? '<span class="timeline-current-badge">Atual</span>' : ''}
+                    <div class="timeline-company">${exp.company}</div>
+                    <div class="timeline-period">${startDate.getFullYear()} - ${isCurrent ? 'Presente' : endDate.getFullYear()}</div>
+                    <div class="timeline-duration">${duration}</div>
                 </div>
-                <div class="timeline-dot"></div>
             `;
-            timeline.appendChild(item);
+            container.appendChild(item);
         });
     } catch (error) {
         console.error('Erro ao carregar timeline de experiências:', error);
     }
+}
+
+
+function createTimelineCard(exp, container, isCurrent) {
+    const startDate = new Date(exp.startDate);
+    const endDate = exp.endDate ? new Date(exp.endDate) : new Date();
+    const duration = calculateDuration(startDate, endDate);
+    const isCurrentJob = !exp.endDate || isCurrent;
+
+    // Formatar período
+    const startYear = startDate.getFullYear();
+    const endYear = isCurrentJob ? 'Presente' : endDate.getFullYear();
+    const period = `${startYear} - ${endYear}`;
+
+    const card = document.createElement('div');
+    card.className = 'timeline-card';
+    card.innerHTML = `
+        ${isCurrentJob ? '<span class="timeline-current-badge">Atual</span>' : ''}
+        <div class="timeline-card-content">
+            <div class="timeline-company">${exp.company}</div>
+            <div class="timeline-period">${period}</div>
+            <div class="timeline-duration">${duration}</div>
+        </div>
+        <div class="timeline-year">${startYear}</div>
+    `;
+
+    container.appendChild(card);
 }
 
 //  Carregar Skills para o Filtro
@@ -166,8 +183,8 @@ async function loadProjectsBySkill(skillId) {
         filterInfo.style.display = 'block';
 
         const experienceText = data.years > 0
-            ? `${data.years} ano${data.years > 1 ? 's' : ''}${data.months > 0 ? ` e ${data.months} mês${data.months > 1 ? 'es' : ''}` : ''}`
-            : `${data.months} mês${data.months > 1 ? 'es' : ''}`;
+            ? `${data.years} ano${data.years > 1 ? 's' : ''}${data.months > 0 ? ` e ${data.months} ${data.months > 1 ? 'meses' : 'mês'}` : ''}`
+            : `${data.months} ${data.months > 1 ? 'meses' : 'mês'}`;
 
         filterInfo.innerHTML = `
             <div class="filter-info-content">
@@ -361,11 +378,11 @@ function calculateDuration(start, end) {
     const remainingMonths = months % 12;
 
     if (years > 0 && remainingMonths > 0) {
-        return `${years} ano${years > 1 ? 's' : ''} e ${remainingMonths} mês${remainingMonths > 1 ? 'es' : ''}`;
+        return `${years} ano${years > 1 ? 's' : ''} e ${remainingMonths} ${remainingMonths > 1 ? 'meses' : 'mês'}`;
     } else if (years > 0) {
         return `${years} ano${years > 1 ? 's' : ''}`;
     } else {
-        return `${remainingMonths} mês${remainingMonths > 1 ? 'es' : ''}`;
+        return `${remainingMonths} ${remainingMonths > 1 ? 'meses' : 'mês'}`;
     }
 }
 
