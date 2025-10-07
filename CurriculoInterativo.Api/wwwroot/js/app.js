@@ -12,7 +12,7 @@ async function loadDashboard() {
             loadCompanyLogos(),
             loadExperiencesTimeline(),
             loadAllSkillsForFilter(),
-            loadAllProjects(),
+            loadAllProjects(), // Já carrega todos os projetos inicialmente
             loadSkills(),
             loadCertifications()
         ]);
@@ -21,22 +21,15 @@ async function loadDashboard() {
     }
 }
 
-// Carregar Logos das Empresas
+//  Carregar Logos das Empresas
 async function loadCompanyLogos() {
     try {
         const response = await fetch(`${API_BASE_URL}/experience`);
-
-        if (!response.ok) {
-            throw new Error(`Erro de rede: ${response.status} ${response.statusText}`);
-        }
+        if (!response.ok) throw new Error(`Erro de rede: ${response.status}`);
 
         const experiences = await response.json();
         const logoCollection = document.getElementById('company-logo-collection');
-
-        if (!logoCollection) {
-            console.error("Elemento 'company-logo-collection' não encontrado.");
-            return;
-        }
+        if (!logoCollection) return;
 
         logoCollection.innerHTML = '';
         experiences.sort((a, b) => new Date(b.startDate) - new Date(a.startDate));
@@ -53,49 +46,30 @@ async function loadCompanyLogos() {
                     <span class="logo-name">${exp.company}</span>
                 `;
             } else {
-                const initials = exp.company
-                    .split(' ')
-                    .map(word => word[0])
-                    .join('')
-                    .toUpperCase()
-                    .slice(0, 2);
-
+                const initials = exp.company.split(' ').map(word => word[0]).join('').toUpperCase().slice(0, 2);
                 logoItem.innerHTML = `
-                    <div class="logo-initials-fallback">
-                        ${initials}
-                    </div>
+                    <div class="logo-initials-fallback">${initials}</div>
                     <span class="logo-name">${exp.company}</span>
                 `;
             }
-
             logoCollection.appendChild(logoItem);
         });
-
     } catch (error) {
         console.error('Erro ao carregar logos das empresas:', error);
     }
 }
 
-// Timeline de Experiências (Jornada Profissional - Empresas)
+//  Timeline de Experiências
 async function loadExperiencesTimeline() {
     try {
         const response = await fetch(`${API_BASE_URL}/experience`);
-
-        if (!response.ok) {
-            throw new Error(`Erro de rede: ${response.status} ${response.statusText}`);
-        }
+        if (!response.ok) throw new Error(`Erro de rede: ${response.status}`);
 
         const experiences = await response.json();
         const timeline = document.getElementById('timeline');
-
-        if (!timeline) {
-            console.error("Elemento #timeline não encontrado");
-            return;
-        }
+        if (!timeline) return;
 
         timeline.innerHTML = '';
-
-        // Ordenar do mais antigo para o mais novo
         const sortedExperiences = [...experiences].sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
 
         sortedExperiences.forEach((exp, index) => {
@@ -106,7 +80,6 @@ async function loadExperiencesTimeline() {
 
             const item = document.createElement('div');
             item.className = 'timeline-journey-item';
-
             item.innerHTML = `
                 <div class="timeline-content">
                     ${isCurrentJob ? '<span class="timeline-current-badge"><i class="fas fa-briefcase"></i> Atual</span>' : ''}
@@ -127,36 +100,24 @@ async function loadExperiencesTimeline() {
                 </div>
                 <div class="timeline-dot"></div>
             `;
-
             timeline.appendChild(item);
         });
-
     } catch (error) {
         console.error('Erro ao carregar timeline de experiências:', error);
     }
 }
 
-// Carregar Skills para o Filtro
+//  Carregar Skills para o Filtro
 async function loadAllSkillsForFilter() {
     try {
         const response = await fetch(`${API_BASE_URL}/skill`);
-
-        if (!response.ok) {
-            throw new Error(`Erro de rede: ${response.status}`);
-        }
+        if (!response.ok) throw new Error(`Erro de rede: ${response.status}`);
 
         const skills = await response.json();
         const selectElement = document.getElementById('skill-filter');
+        if (!selectElement) return;
 
-        if (!selectElement) {
-            console.error("Elemento 'skill-filter' não encontrado.");
-            return;
-        }
-
-        // Limpar opções existentes (exceto a primeira)
         selectElement.innerHTML = '<option value="">Exibir todos os projetos</option>';
-
-        // Ordenar skills alfabeticamente
         skills.sort((a, b) => a.name.localeCompare(b.name));
 
         skills.forEach(skill => {
@@ -165,54 +126,43 @@ async function loadAllSkillsForFilter() {
             option.textContent = skill.name;
             selectElement.appendChild(option);
         });
-
     } catch (error) {
         console.error('Erro ao carregar skills para o filtro:', error);
     }
 }
 
-// Configurar listeners do filtro
+//  Configurar listeners do filtro
 function setupFilterListeners() {
     const skillFilter = document.getElementById('skill-filter');
-
-    if (!skillFilter) {
-        console.error("Elemento 'skill-filter' não encontrado para configurar listeners.");
-        return;
-    }
+    if (!skillFilter) return;
 
     skillFilter.addEventListener('change', function () {
         const skillId = this.value;
         const filterInfo = document.getElementById('filter-info');
 
         if (skillId) {
-            // Filtrar por skill específica
             loadProjectsBySkill(parseInt(skillId));
         } else {
-            // Mostrar todos os projetos
             filterInfo.style.display = 'none';
             loadAllProjects();
         }
     });
 }
 
-// Carregar Projetos Filtrados por Skill (rota: project/${skillId})
+//  Carregar Projetos Filtrados por Skill
 async function loadProjectsBySkill(skillId) {
     try {
         console.log(`Carregando projetos filtrados pela skill ID: ${skillId}`);
         const response = await fetch(`${API_BASE_URL}/project/${skillId}`);
-
-        if (!response.ok) {
-            throw new Error(`Erro na API: ${response.status}`);
-        }
+        if (!response.ok) throw new Error(`Erro na API: ${response.status}`);
 
         const data = await response.json();
         console.log('Dados recebidos:', data);
 
         const container = document.getElementById('projects-container');
-        container.innerHTML = '';
-
-        // Mostrar informações do filtro
         const filterInfo = document.getElementById('filter-info');
+
+        container.innerHTML = '';
         filterInfo.style.display = 'block';
 
         const experienceText = data.years > 0
@@ -236,7 +186,6 @@ async function loadProjectsBySkill(skillId) {
             </div>
         `;
 
-        // Atualizar contador de projetos
         document.getElementById('total-projects').textContent = data.projects.length;
 
         if (data.projects.length === 0) {
@@ -249,86 +198,24 @@ async function loadProjectsBySkill(skillId) {
             return;
         }
 
-        // Ordenar do mais recente para o mais antigo
-        const sortedProjects = [...data.projects].sort((a, b) => new Date(b.startDate) - new Date(a.startDate));
-
-        sortedProjects.forEach(project => {
-            const startDate = new Date(project.startDate);
-            const endDate = project.endDate ? new Date(project.endDate) : new Date();
-            const duration = calculateDuration(startDate, endDate);
-            const companyName = project.experience?.company || 'Empresa não informada';
-            const isCurrentProject = !project.endDate;
-
-            const card = document.createElement('div');
-            card.className = 'project-card';
-            card.innerHTML = `
-                <div class="project-header">
-                    ${isCurrentProject ? '<span class="project-current-badge"><i class="fas fa-circle"></i> Projeto Atual</span>' : ''}
-                    <div class="project-name">${project.name}</div>
-                    <div class="project-position">${project.position}</div>
-                    <div class="project-meta">
-                        <span class="project-company-tag">
-                            <i class="fas fa-building"></i> ${companyName}
-                        </span>
-                        <span class="project-duration">
-                            <i class="fas fa-clock"></i> ${duration}
-                        </span>
-                    </div>
-                </div>
-                <p class="project-description">${project.description}</p>
-                <div class="skills-tags" id="project-skills-${project.id}"></div>
-            `;
-            container.appendChild(card);
-
-            // Adicionar skills ao card
-            const skillsContainer = document.getElementById(`project-skills-${project.id}`);
-            if (project.skills && project.skills.length > 0) {
-                project.skills.forEach(skill => {
-                    const tag = document.createElement('span');
-                    tag.className = `skill-tag ${getCategoryClass(skill.category)}`;
-                    tag.textContent = skill.name;
-
-                    // Destacar a skill filtrada
-                    if (skill.id === skillId) {
-                        tag.style.boxShadow = '0 0 0 3px rgba(102, 126, 234, 0.3)';
-                        tag.style.transform = 'scale(1.05)';
-                    }
-
-                    skillsContainer.appendChild(tag);
-                });
-            }
-        });
-
+        renderProjects(data.projects, skillId);
     } catch (error) {
         console.error('Erro ao carregar projetos por skill:', error);
-        const container = document.getElementById('projects-container');
-        const filterInfo = document.getElementById('filter-info');
-        filterInfo.style.display = 'none';
-
-        container.innerHTML = `
-            <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #e74c3c;">
-                <i class="fas fa-exclamation-triangle" style="font-size: 3rem; margin-bottom: 15px;"></i>
-                <p style="font-size: 1.2rem;">Erro ao carregar projetos. Tente novamente.</p>
-            </div>
-        `;
+        handleProjectsError();
     }
 }
 
-// Carregar TODOS os Projetos (rota: project/projects-with-company)
+//  Carregar TODOS os Projetos
 async function loadAllProjects() {
     try {
         console.log('Carregando todos os projetos...');
         const response = await fetch(`${API_BASE_URL}/project/projects-with-company`);
-
-        if (!response.ok) {
-            throw new Error(`Erro na API: ${response.status}`);
-        }
+        if (!response.ok) throw new Error(`Erro na API: ${response.status}`);
 
         const projects = await response.json();
         console.log('Projetos carregados:', projects.length);
 
         document.getElementById('total-projects').textContent = projects.length;
-
         const container = document.getElementById('projects-container');
         container.innerHTML = '';
 
@@ -342,88 +229,98 @@ async function loadAllProjects() {
             return;
         }
 
-        // Ordenar do mais recente para o mais antigo
-        const sortedProjects = [...projects].sort((a, b) => new Date(b.startDate) - new Date(a.startDate));
-
-        sortedProjects.forEach(project => {
-            const startDate = new Date(project.startDate);
-            const endDate = project.endDate ? new Date(project.endDate) : new Date();
-            const duration = calculateDuration(startDate, endDate);
-            const companyName = project.companyName || 'Empresa não informada';
-            const isCurrentProject = !project.endDate;
-
-            const card = document.createElement('div');
-            card.className = 'project-card';
-            card.innerHTML = `
-                <div class="project-header">
-                    ${isCurrentProject ? '<span class="project-current-badge"><i class="fas fa-circle"></i> Projeto Atual</span>' : ''}
-                    <div class="project-name">${project.name}</div>
-                    <div class="project-position">${project.position}</div>
-                    <div class="project-meta">
-                        <span class="project-company-tag">
-                            <i class="fas fa-building"></i> ${companyName}
-                        </span>
-                        <span class="project-duration">
-                            <i class="fas fa-clock"></i> ${duration}
-                        </span>
-                    </div>
-                </div>
-                <p class="project-description">${project.description}</p>
-                <div class="skills-tags" id="project-skills-${project.id}"></div>
-            `;
-            container.appendChild(card);
-
-            // Adicionar skills ao card
-            const skillsContainer = document.getElementById(`project-skills-${project.id}`);
-            if (project.skills && project.skills.length > 0) {
-                project.skills.forEach(skill => {
-                    const tag = document.createElement('span');
-                    tag.className = `skill-tag ${getCategoryClass(skill.category)}`;
-                    tag.textContent = skill.name;
-                    skillsContainer.appendChild(tag);
-                });
-            }
-        });
-
+        renderProjects(projects);
     } catch (error) {
         console.error('Erro ao carregar projetos:', error);
-        const container = document.getElementById('projects-container');
-        container.innerHTML = `
-            <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #e74c3c;">
-                <i class="fas fa-exclamation-triangle" style="font-size: 3rem; margin-bottom: 15px;"></i>
-                <p style="font-size: 1.2rem;">Erro ao carregar projetos. Tente novamente.</p>
-            </div>
-        `;
+        handleProjectsError();
     }
 }
 
-// Carregar Skills
+// [NOVA FUNÇÃO] Renderizar projetos (reutilizável)
+function renderProjects(projects, skillId = null) {
+    const container = document.getElementById('projects-container');
+    const sortedProjects = [...projects].sort((a, b) => new Date(b.startDate) - new Date(a.startDate));
+
+    sortedProjects.forEach(project => {
+        const startDate = new Date(project.startDate);
+        const endDate = project.endDate ? new Date(project.endDate) : new Date();
+        const duration = calculateDuration(startDate, endDate);
+        const companyName = project.companyName || project.experience?.company || 'Empresa não informada';
+        const isCurrentProject = !project.endDate;
+
+        const card = document.createElement('div');
+        card.className = 'project-card';
+        card.innerHTML = `
+            <div class="project-header">
+                ${isCurrentProject ? '<span class="project-current-badge"><i class="fas fa-circle"></i> Projeto Atual</span>' : ''}
+                <div class="project-name">${project.name}</div>
+                <div class="project-position">${project.position}</div>
+                <div class="project-meta">
+                    <span class="project-company-tag">
+                        <i class="fas fa-building"></i> ${companyName}
+                    </span>
+                    <span class="project-duration">
+                        <i class="fas fa-clock"></i> ${duration}
+                    </span>
+                </div>
+            </div>
+            <p class="project-description">${project.description}</p>
+            <div class="skills-tags" id="project-skills-${project.id}"></div>
+        `;
+        container.appendChild(card);
+
+        // Adicionar skills ao card
+        const skillsContainer = document.getElementById(`project-skills-${project.id}`);
+        if (project.skills && project.skills.length > 0) {
+            project.skills.forEach(skill => {
+                const tag = document.createElement('span');
+                tag.className = `skill-tag ${getCategoryClass(skill.category)}`;
+                tag.textContent = skill.name;
+
+                // Destacar a skill filtrada
+                if (skillId && skill.id === skillId) {
+                    tag.style.boxShadow = '0 0 0 3px rgba(102, 126, 234, 0.3)';
+                    tag.style.transform = 'scale(1.05)';
+                }
+
+                skillsContainer.appendChild(tag);
+            });
+        }
+    });
+}
+
+//  Tratamento de erro para projetos
+function handleProjectsError() {
+    const container = document.getElementById('projects-container');
+    const filterInfo = document.getElementById('filter-info');
+
+    if (filterInfo) filterInfo.style.display = 'none';
+
+    container.innerHTML = `
+        <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #e74c3c;">
+            <i class="fas fa-exclamation-triangle" style="font-size: 3rem; margin-bottom: 15px;"></i>
+            <p style="font-size: 1.2rem;">Erro ao carregar projetos. Tente novamente.</p>
+        </div>
+    `;
+}
+
+//  Carregar Skills
 async function loadSkills() {
     try {
         const response = await fetch(`${API_BASE_URL}/skill`);
-
-        if (!response.ok) {
-            throw new Error(`Erro de rede: ${response.status}`);
-        }
+        if (!response.ok) throw new Error(`Erro de rede: ${response.status}`);
 
         const skills = await response.json();
-
         document.getElementById('total-skills').textContent = skills.length;
 
         const list = document.getElementById('skills-list');
-        if (!list) {
-            console.error("Elemento 'skills-list' não encontrado.");
-            return;
-        }
+        if (!list) return;
 
         list.innerHTML = '';
-
         skills.sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
 
         skills.forEach(skill => {
             const startDate = new Date(skill.startDate);
-            const now = new Date();
-
             const starRating = calculateStarRating(startDate);
             const starsHtml = renderStars(starRating);
 
@@ -439,30 +336,25 @@ async function loadSkills() {
             `;
             list.appendChild(item);
         });
-
     } catch (error) {
         console.error('Erro ao carregar skills:', error);
     }
 }
 
-// Carregar Certificações
+//  Carregar Certificações
 async function loadCertifications() {
     try {
         const response = await fetch(`${API_BASE_URL}/certification`);
-
-        if (!response.ok) {
-            throw new Error(`Erro de rede: ${response.status}`);
-        }
+        if (!response.ok) throw new Error(`Erro de rede: ${response.status}`);
 
         const certs = await response.json();
-
         document.getElementById('total-certs').textContent = certs.length;
     } catch (error) {
         console.error('Erro ao carregar certificações:', error);
     }
 }
 
-// Funções Auxiliares
+//  Funções Auxiliares
 function calculateDuration(start, end) {
     const months = (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth());
     const years = Math.floor(months / 12);
@@ -482,14 +374,12 @@ function calculateStarRating(startDate) {
     const diffTime = Math.abs(now - startDate);
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     const yearsExperience = diffDays / 365.25;
-
     return Math.min(5, yearsExperience);
 }
 
 function renderStars(rating) {
     let starsHtml = '';
     const maxStars = 5;
-
     for (let i = 1; i <= maxStars; i++) {
         if (rating >= i) {
             starsHtml += '<i class="fas fa-star filled-star"></i>';
@@ -520,23 +410,21 @@ function getCategoryClass(category) {
     return map[categoryName] || 'backend';
 }
 
-// Download PDF
+//  Download PDF
 function downloadPDF() {
     alert('Funcionalidade de download de PDF será implementada em breve!');
 }
 
-// Form de sugestões
+//  Form de sugestões
 document.addEventListener('DOMContentLoaded', function () {
     const suggestionsForm = document.getElementById('suggestions-form');
     if (suggestionsForm) {
         suggestionsForm.addEventListener('submit', async function (e) {
             e.preventDefault();
-
             const loading = document.getElementById('suggestion-loading');
             const form = e.target;
 
             if (loading) loading.classList.add('show');
-
             setTimeout(() => {
                 alert('Obrigado pela sua sugestão! Ela será analisada em breve.');
                 form.reset();

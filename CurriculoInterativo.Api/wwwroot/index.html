@@ -105,26 +105,27 @@
             <div class="timeline-journey" id="timeline"></div>
         </section>
 
-        <!-- Filter Section -->
-        <section class="filter-section">
-            <h2 class="section-title">
-                <i class="fas fa-filter"></i>
-                Filtrar Projetos por Tecnologia
-            </h2>
-            <div class="filter-container">
-                <select id="skill-filter" class="skill-filter-select">
-                    <option value="">Exibir todos os projetos</option>
-                </select>
-            </div>
-            <div id="filter-info" class="filter-info" style="display: none;"></div>
-        </section>
-
-        <!-- All Projects -->
+        <!-- Projects & Filter Section -->
         <section class="projects-section">
-            <h2 class="section-title">
-                <i class="fas fa-laptop-code"></i>
-                Todos os Projetos
-            </h2>
+            <div class="projects-header">
+                <h2 class="section-title">
+                    <i class="fas fa-laptop-code"></i>
+                    Todos os Projetos
+                </h2>
+
+                <div class="filter-container">
+                    <label for="skill-filter" class="filter-label">
+                        <i class="fas fa-filter"></i>
+                        Filtrar por Tecnologia:
+                    </label>
+                    <select id="skill-filter" class="skill-filter-select">
+                        <option value="">Exibir todos os projetos</option>
+                    </select>
+                </div>
+            </div>
+
+            <div id="filter-info" class="filter-info" style="display: none;"></div>
+
             <div class="projects-container" id="projects-container"></div>
         </section>
 
