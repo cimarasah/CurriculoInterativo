@@ -63,16 +63,6 @@
             </div>
         </section>
 
-        <!-- Companys -->
-        <section class="logos-section">
-            <h2 class="section-title">
-                <i class="fas fa-chart-line"></i>
-                Empresas Onde Trabalhei
-            </h2>
-            <div id="company-logo-collection" class="logo-grid">
-            </div>
-        </section>
-
         <!-- Stats -->
         <div class="stats-grid" id="stats-grid">
             <div class="stat-card">
@@ -97,22 +87,45 @@
             </div>
         </div>
 
-        <!-- Timeline -->
-        <section class="timeline-section">
+        <!-- Companies -->
+        <section class="logos-section">
             <h2 class="section-title">
-                <i class="fas fa-history"></i>
-                Linha do Tempo Profissional
+                <i class="fas fa-building"></i>
+                Empresas Onde Trabalhei
             </h2>
-            <div class="timeline" id="timeline"></div>
+            <div id="company-logo-collection" class="logo-grid"></div>
         </section>
 
-        <!-- Projects -->
+        <!-- Professional Journey Timeline -->
         <section class="timeline-section">
             <h2 class="section-title">
-                <i class="fas fa-laptop-code"></i>
-                Projetos em Destaque
+                <i class="fas fa-route"></i>
+                Jornada Profissional
             </h2>
-            <div class="projects-grid" id="projects-grid"></div>
+            <div class="timeline-journey" id="timeline"></div>
+        </section>
+
+        <!-- Filter Section -->
+        <section class="filter-section">
+            <h2 class="section-title">
+                <i class="fas fa-filter"></i>
+                Filtrar Projetos por Tecnologia
+            </h2>
+            <div class="filter-container">
+                <select id="skill-filter" class="skill-filter-select">
+                    <option value="">Exibir todos os projetos</option>
+                </select>
+            </div>
+            <div id="filter-info" class="filter-info" style="display: none;"></div>
+        </section>
+
+        <!-- All Projects -->
+        <section class="projects-section">
+            <h2 class="section-title">
+                <i class="fas fa-laptop-code"></i>
+                Todos os Projetos
+            </h2>
+            <div class="projects-container" id="projects-container"></div>
         </section>
 
         <!-- Skills -->
@@ -123,9 +136,6 @@
             </h2>
             <div id="skills-list"></div>
         </section>
-
-
-
 
         <!-- Suggestions -->
         <section class="suggestions-section">

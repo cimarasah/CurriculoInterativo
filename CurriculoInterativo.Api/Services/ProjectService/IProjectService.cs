@@ -6,6 +6,6 @@ namespace CurriculoInterativo.Api.Services.ProjectService
     {
         Task<List<ProjectDto>> GetProjectsAsync();
         Task<List<ProjectDto>> GetProjectsWithCompanyAsync();
-        Task<IEnumerable<ProjectDto>> GetProjectsBySkillAsync(SkillDto skillDto);
+        Task<ListProjectBySkillDto> GetProjectsBySkillAsync(int idSkill);
     }
 }

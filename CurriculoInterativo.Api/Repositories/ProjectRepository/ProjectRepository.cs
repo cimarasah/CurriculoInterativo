@@ -17,12 +17,12 @@ namespace CurriculoInterativo.Api.Repositories.ProjectRepository
                 .Include(p => p.Responsibilities)
                 .ToListAsync();
         }
-        public async Task<IEnumerable<Project>> GetBySkillAsync(Skill skill)
+        public async Task<IEnumerable<Project>> GetBySkillAsync(int idSkill)
         {
             return await _context.Projects
-                .Include(p => p.Skills)
-                .Where(p => p.Skills.Contains(skill))
-                .ToListAsync();
+            .Include(p => p.Skills)
+            .Where(p => p.Skills.Any(s => s.Id == idSkill))
+            .ToListAsync();
         }
 
         public async Task<IEnumerable<Project>> GetProjectsWithCompany()
