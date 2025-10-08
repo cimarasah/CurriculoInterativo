@@ -42,3 +42,28 @@
         font-size: 0.8rem;
     }
 }
+/* Responsividade para o layout timeline-skills */
+@media (max-width: 1024px) {
+    .timeline-skills-container {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    .timeline-section, .skills-section {
+        margin-bottom: 30px;
+    }
+}
+
+@media (max-width: 768px) {
+    .timeline-section, .skills-section {
+        padding: 20px;
+    }
+
+    .timeline-container {
+        width: 95%;
+    }
+
+    .skill-item {
+        padding: 10px 12px;
+    }
+}

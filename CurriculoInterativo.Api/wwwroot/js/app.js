@@ -88,6 +88,8 @@ async function loadExperiencesTimeline() {
                     <div class="timeline-company">${exp.company}</div>
                     <div class="timeline-period">${startDate.getFullYear()} - ${isCurrent ? 'Presente' : endDate.getFullYear()}</div>
                     <div class="timeline-duration">${duration}</div>
+                    <div class="timeline-period">${exp.description}</div>
+
                 </div>
             `;
             container.appendChild(item);
@@ -322,6 +324,7 @@ function handleProjectsError() {
 }
 
 //  Carregar Skills
+//  Carregar Skills
 async function loadSkills() {
     try {
         const response = await fetch(`${API_BASE_URL}/skill`);
@@ -339,7 +342,7 @@ async function loadSkills() {
         skills.forEach(skill => {
             const startDate = new Date(skill.startDate);
             const starRating = calculateStarRating(startDate);
-            const starsHtml = renderStars(starRating);
+            const starsHtml = renderStars(skill.ProficiencyLevel);
 
             const item = document.createElement('div');
             item.className = 'skill-item';

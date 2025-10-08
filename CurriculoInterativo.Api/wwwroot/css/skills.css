@@ -2,25 +2,33 @@
 .skills-section {
     background: var(--white);
     border-radius: var(--border-radius);
-    padding: 40px;
-    margin-bottom: 30px;
+    padding: 30px;
+    margin-bottom: 0;
     box-shadow: var(--shadow-medium);
+    height: fit-content;
 }
 
 #skills-list {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 20px;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 15px;
     margin-top: 20px;
 }
 
 .skill-item {
     background: #fdfdfd;
     border: 1px solid #eee;
-    border-radius: 10px;
-    padding: 15px;
+    border-radius: 12px;
+    padding: 20px 15px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
     transition: transform 0.2s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    aspect-ratio: 1; /* Torna o card quadrado */
+    min-height: 120px;
 }
 
     .skill-item:hover {
@@ -30,22 +38,28 @@
 
 .skill-name-row {
     display: flex;
-    justify-content: space-between;
+    flex-direction: column;
     align-items: center;
-    margin-bottom: 8px;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 0;
+    width: 100%;
 }
 
 .skill-name {
-    font-size: 1.15rem;
+    font-size: 0.95rem;
     font-weight: 700;
     color: #34495e;
+    line-height: 1.2;
+    word-break: break-word;
 }
 
 .skill-rating {
-    font-size: 1rem;
+    font-size: 0.85rem;
     color: #ccc;
     display: flex;
-    gap: 3px;
+    gap: 2px;
+    justify-content: center;
 }
 
     .skill-rating .filled-star {
@@ -58,9 +72,48 @@
 
 .skill-time-detail {
     display: block;
-    font-size: 0.9rem;
+    font-size: 0.75rem;
     color: #7f8c8d;
     font-weight: 500;
-    padding-top: 5px;
+    padding-top: 8px;
     border-top: 1px solid #ecf0f1;
+    margin-top: 8px;
+    width: 100%;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    #skills-list {
+        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+        gap: 12px;
+    }
+
+    .skill-item {
+        padding: 15px 10px;
+        min-height: 100px;
+    }
+
+    .skill-name {
+        font-size: 0.9rem;
+    }
+
+    .skill-rating {
+        font-size: 0.8rem;
+    }
+}
+
+@media (max-width: 480px) {
+    #skills-list {
+        grid-template-columns: repeat(auto-fit, minmax(85px, 1fr));
+        gap: 10px;
+    }
+
+    .skill-item {
+        padding: 12px 8px;
+        min-height: 85px;
+    }
+
+    .skill-name {
+        font-size: 0.85rem;
+    }
 }
