@@ -325,6 +325,7 @@ function handleProjectsError() {
 
 //  Carregar Skills
 //  Carregar Skills
+a//  Carregar Skills
 async function loadSkills() {
     try {
         const response = await fetch(`${API_BASE_URL}/skill`);
@@ -340,16 +341,15 @@ async function loadSkills() {
         skills.sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
 
         skills.forEach(skill => {
-            const startDate = new Date(skill.startDate);
-            const starRating = calculateStarRating(startDate);
-            const starsHtml = renderStars(skill.ProficiencyLevel);
+            // Usa o IdProficiencyLevel como quantidade de estrelas
+            const starsHtml = renderStars(skill.idProficiencyLevel);
 
             const item = document.createElement('div');
             item.className = 'skill-item';
             item.innerHTML = `
                 <div class="skill-name-row">
                     <span class="skill-name">${skill.name}</span>
-                    <div class="skill-rating" title="Proficiência: ${starRating.toFixed(1)} estrelas">
+                    <div class="skill-rating" title="Proficiência: ${getProficiencyLabel(skill.idProficiencyLevel)}">
                         ${starsHtml}
                     </div>
                 </div>
@@ -359,6 +359,33 @@ async function loadSkills() {
     } catch (error) {
         console.error('Erro ao carregar skills:', error);
     }
+}
+
+// Função auxiliar para obter o label da proficiência
+function getProficiencyLabel(level) {
+    const labels = {
+        1: 'Beginner',
+        2: 'Intermediate',
+        3: 'Competent',
+        4: 'Proficient',
+        5: 'Expert'
+    };
+    return labels[level] || 'Not Rated';
+}
+
+// Renderiza as estrelas baseado no IdProficiencyLevel (1-5)
+function renderStars(proficiencyLevel) {
+    let starsHtml = '';
+    const maxStars = 5;
+
+    for (let i = 1; i <= maxStars; i++) {
+        if (i <= proficiencyLevel) {
+            starsHtml += '<i class="fas fa-star filled-star"></i>';
+        } else {
+            starsHtml += '<i class="far fa-star empty-star"></i>';
+        }
+    }
+    return starsHtml;
 }
 
 //  Carregar Certificações
@@ -376,7 +403,24 @@ async function loadCertifications() {
 
 //  Funções Auxiliares
 function calculateDuration(start, end) {
-    const months = (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth());
+    // Garante que as datas são do mesmo tipo
+    const startDate = new Date(start);
+    const endDate = new Date(end);
+
+    // Calcula diferença total em meses considerando dias
+    let months = (endDate.getFullYear() - startDate.getFullYear()) * 12;
+    months += endDate.getMonth() - startDate.getMonth();
+
+    // Ajusta para considerar os dias
+    if (endDate.getDate() < startDate.getDate()) {
+        months--;
+    }
+
+    // Garante pelo menos 1 mês para períodos curtos
+    if (months === 0 && (endDate - startDate) > 0) {
+        months = 1;
+    }
+
     const years = Math.floor(months / 12);
     const remainingMonths = months % 12;
 
@@ -385,31 +429,8 @@ function calculateDuration(start, end) {
     } else if (years > 0) {
         return `${years} ano${years > 1 ? 's' : ''}`;
     } else {
-        return `${remainingMonths} ${remainingMonths > 1 ? 'meses' : 'mês'}`;
+        return `${months} ${months > 1 ? 'meses' : 'mês'}`;
     }
-}
-
-function calculateStarRating(startDate) {
-    const now = new Date();
-    const diffTime = Math.abs(now - startDate);
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    const yearsExperience = diffDays / 365.25;
-    return Math.min(5, yearsExperience);
-}
-
-function renderStars(rating) {
-    let starsHtml = '';
-    const maxStars = 5;
-    for (let i = 1; i <= maxStars; i++) {
-        if (rating >= i) {
-            starsHtml += '<i class="fas fa-star filled-star"></i>';
-        } else if (rating >= i - 0.5) {
-            starsHtml += '<i class="fas fa-star-half-alt filled-star"></i>';
-        } else {
-            starsHtml += '<i class="far fa-star empty-star"></i>';
-        }
-    }
-    return starsHtml;
 }
 
 function formatDate(date) {
