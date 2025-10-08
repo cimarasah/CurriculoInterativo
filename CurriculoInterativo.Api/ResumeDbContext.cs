@@ -176,9 +176,9 @@ namespace CurriculoInterativo.Api
             #region Relacionamentos
             // Experience -> Projects (One-to-Many)
             modelBuilder.Entity<Project>()
-                .HasOne<Experience>()
-                .WithMany(e => e.Projects)
-                .HasForeignKey("ExperienceId")
+                .HasOne(p => p.Experience) 
+                .WithMany(e => e.Projects) 
+                .HasForeignKey(p => p.ExperienceId) 
                 .OnDelete(DeleteBehavior.Cascade);
 
             // Project -> Responsibilities (One-to-Many)

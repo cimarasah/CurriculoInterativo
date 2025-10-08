@@ -38,12 +38,12 @@ namespace ProjectInterativo.Api.Controllers
         /// </summary>
         /// <param name="skill">Habilidade dos projetos</param>
         /// <returns>Lista de projetos por habilidade especificada</returns>
-        [HttpGet("skill/{skillDto}")]
-        public async Task<ActionResult<List<ProjectDto>>> GetProjectsBySkill(SkillDto skillDto)
+        [HttpGet("{idSkill}")]
+        public async Task<ActionResult<ListProjectBySkillDto>> GetProjectsBySkill(int idSkill)
         {
             try
             {
-                var ProjectsFiltrados = await _projectService.GetProjectsBySkillAsync(skillDto);
+                var ProjectsFiltrados = await _projectService.GetProjectsBySkillAsync(idSkill);
                 return Ok(ProjectsFiltrados);
             }
             catch (Exception ex)
@@ -51,6 +51,24 @@ namespace ProjectInterativo.Api.Controllers
                 return StatusCode(500, $"Erro interno do servidor: {ex.Message}");
             }
         }
+        /// <summary>
+        /// Retorna todas os projetos com a empresa
+        /// </summary>
+        /// <returns>Lista de projetos</returns>
+        [HttpGet("projects-with-company")]
+        public async Task<ActionResult<List<ProjectDto>>> GetProjectsWithCompanyAsync()
+        {
+            try
+            {
+                var Projects = await _projectService.GetProjectsWithCompanyAsync();
+                return Ok(Projects);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Erro interno do servidor: {ex.Message}");
+            }
+        }
+
     }
 }
 

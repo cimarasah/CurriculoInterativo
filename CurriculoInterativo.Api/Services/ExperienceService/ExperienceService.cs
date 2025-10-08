@@ -15,11 +15,11 @@ namespace CurriculoInterativo.Api.Services.ExperienceService
             _mapper = mapper;
         }
 
-        public async Task<List<ExperienceDto>> GetExperiencesAsync()
+        public async Task<List<ExperienceMiniDto>> GetExperiencesMiniAsync()
         {
-            var experiences = await _repository.GetExperiencesWithProjectsAsync();
+            var experiences = await _repository.GetAllAsync();
 
-            var experienceDtos = _mapper.Map<List<ExperienceDto>>(experiences);
+            var experienceDtos = _mapper.Map<List<ExperienceMiniDto>>(experiences);
 
             return experienceDtos;
         }

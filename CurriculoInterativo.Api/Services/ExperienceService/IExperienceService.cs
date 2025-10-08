@@ -4,6 +4,6 @@ namespace CurriculoInterativo.Api.Services.ExperienceService
 {
     public interface IExperienceService
     {
-        Task<List<ExperienceDto>> GetExperiencesAsync();
+        Task<List<ExperienceMiniDto>> GetExperiencesMiniAsync();
     }
 }

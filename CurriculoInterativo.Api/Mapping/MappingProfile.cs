@@ -20,6 +20,9 @@ namespace CurriculoInterativo.Api.Mapping
             CreateMap<Experience, ExperienceDto>();
             CreateMap<ExperienceDto, Experience>();
 
+            // NOVO MAPEAMENTO para a rota leve de Logos
+            CreateMap<Experience, ExperienceMiniDto>();
+
             // Project mappings
             CreateMap<Project, ProjectDto>();
             CreateMap<ProjectDto, Project>();

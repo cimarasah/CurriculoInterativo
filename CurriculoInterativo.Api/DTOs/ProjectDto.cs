@@ -8,8 +8,9 @@ namespace CurriculoInterativo.Api.DTOs
         public string Name { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
         public string Position { get; set; } = string.Empty;
-        public List<ResponsibilityDto> Responsibilities { get; set; } = new();
-        public List<SkillDto> Skills { get; set; } = new();
+        public required ExperienceDto Experience { get; set; }
+        public List<ResponsibilityDto> Responsibilities { get; set; } = [];
+        public List<SkillDto> Skills { get; set; } = [];
         public DateTime StartDate { get; set; }
         public DateTime? EndDate { get; set; }
     }

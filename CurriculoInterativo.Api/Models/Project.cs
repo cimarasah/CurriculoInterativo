@@ -10,6 +10,8 @@ namespace CurriculoInterativo.Api.Models
         public List<Skill> Skills { get; set; } = new();
         public DateTime StartDate { get; set; }
         public DateTime? EndDate { get; set; }
+        public int ExperienceId { get; set; }
+        public required Experience Experience { get; set; }
     }
 }
 

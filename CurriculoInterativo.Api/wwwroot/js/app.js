@@ -1,311 +1,455 @@
-// Configurações da API
-const API_BASE_URL = "http://localhost:5083/api";
-const AZURE_FUNCTION_URL =
-  "https://your-azure-function.azurewebsites.net/api/CalcularProficiencia";
-
-// Estado da aplicação
-let skillsUpdateInterval;
+const API_BASE_URL = 'http://localhost:5083/api';
 
 // Inicialização
-document.addEventListener("DOMContentLoaded", function () {
-  initializeApp();
+document.addEventListener('DOMContentLoaded', function () {
+    loadDashboard();
+    setupFilterListeners();
 });
 
-function initializeApp() {
-  console.log("Inicializando aplicação...");
-  loadSkillsCounter();
-  startSkillsUpdateTimer();
-}
-
-// Função para alternar visibilidade dos endpoints
-function toggleEndpoint(endpointId) {
-  const endpointGroup = document.querySelector(`#${endpointId}`).parentElement;
-  endpointGroup.classList.toggle("active");
-}
-
-// Função para executar endpoints da API
-async function executeEndpoint(endpoint) {
-  const resultContainer = document.getElementById(`${endpoint}-result`);
-  resultContainer.classList.add("show");
-
-  try {
-    showLoading(resultContainer);
-
-    const response = await fetch(`${API_BASE_URL}/${endpoint}`);
-
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+async function loadDashboard() {
+    try {
+        await Promise.all([
+            loadCompanyLogos(),
+            loadExperiencesTimeline(),
+            loadAllSkillsForFilter(),
+            loadAllProjects(), // Já carrega todos os projetos inicialmente
+            loadSkills(),
+            loadCertifications()
+        ]);
+    } catch (error) {
+        console.error('Erro ao carregar dashboard:', error);
     }
-
-    const data = await response.json();
-    showResult(resultContainer, data, "success");
-  } catch (error) {
-    console.error(`Erro ao executar endpoint ${endpoint}:`, error);
-    showResult(resultContainer, { error: error.message }, "error");
-  }
 }
 
-// Função para carregar o contador de skills
-async function loadSkillsCounter() {
-  const skillsGrid = document.getElementById("skills-grid");
+//  Carregar Logos das Empresas
+async function loadCompanyLogos() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/experience`);
+        if (!response.ok) throw new Error(`Erro de rede: ${response.status}`);
 
-  try {
-    // Primeiro, buscar as skills da API local
-   // const skillsResponse = await fetch(`${API_BASE_URL}/skill`);
+        const experiences = await response.json();
+        const logoCollection = document.getElementById('company-logo-collection');
+        if (!logoCollection) return;
 
-   // if (!skillsResponse.ok) {
-   //   throw new Error("Erro ao carregar skills da API local");
-   // }
+        logoCollection.innerHTML = '';
+        experiences.sort((a, b) => new Date(b.startDate) - new Date(a.startDate));
 
-   // const skills = await skillsResponse.json();
+        experiences.forEach(exp => {
+            const logoItem = document.createElement('div');
+            logoItem.className = 'company-logo-item';
+            logoItem.setAttribute('title', exp.company);
 
-    // Depois, buscar os tempos calculados da Azure Function
-   // await updateSkillsTimes(skills);
-  } catch (error) {
-    console.error("Erro ao carregar contador de skills:", error);
-    showSkillsError();
-  }
+            if (exp.imgLogo) {
+                const imgBase64Src = `data:image/jpeg;base64,${exp.imgLogo}`;
+                logoItem.innerHTML = `
+                    <img src="${imgBase64Src}" alt="${exp.company} Logo" class="logo-image">
+                    <span class="logo-name">${exp.company}</span>
+                `;
+            } else {
+                const initials = exp.company.split(' ').map(word => word[0]).join('').toUpperCase().slice(0, 2);
+                logoItem.innerHTML = `
+                    <div class="logo-initials-fallback">${initials}</div>
+                    <span class="logo-name">${exp.company}</span>
+                `;
+            }
+            logoCollection.appendChild(logoItem);
+        });
+    } catch (error) {
+        console.error('Erro ao carregar logos das empresas:', error);
+    }
 }
 
-// Função para atualizar os tempos das skills
-async function updateSkillsTimes(skills) {
-  const skillsGrid = document.getElementById("skills-grid");
+// Timeline de Experiências (Jornada Profissional - Zig-Zag)
+async function loadExperiencesTimeline() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/experience`);
+        if (!response.ok) throw new Error(`Erro de rede: ${response.status}`);
 
-  try {
-    // Simular chamada para Azure Function (já que não temos uma real rodando)
-    const skillsWithTimes = await simulateAzureFunctionCall(skills);
+        const experiences = await response.json();
+        const container = document.getElementById('timeline');
+        container.innerHTML = '';
 
-    // Limpar grid atual
-    skillsGrid.innerHTML = "";
+        // Ordenar do mais recente ao mais antigo
+        const sorted = experiences.sort((a, b) => new Date(b.startDate) - new Date(a.startDate));
 
-    // Renderizar skills com tempos atualizados
-    skillsWithTimes.forEach((skill) => {
-      const skillCard = createSkillCard(skill);
-      skillsGrid.appendChild(skillCard);
-    });
-  } catch (error) {
-    console.error("Erro ao atualizar tempos das skills:", error);
-  }
+        sorted.forEach((exp, index) => {
+            const startDate = new Date(exp.startDate);
+            const endDate = exp.endDate ? new Date(exp.endDate) : new Date();
+            const duration = calculateDuration(startDate, endDate);
+            const isCurrent = !exp.endDate;
+            const side = index % 2 === 0 ? 'left' : 'right';
+
+            const item = document.createElement('div');
+            item.className = `timeline-item ${side}`;
+            item.innerHTML = `
+                <span class="timeline-dot"></span>
+                <div class="timeline-card">
+                    ${isCurrent ? '<span class="timeline-current-badge">Atual</span>' : ''}
+                    <div class="timeline-company">${exp.company}</div>
+                    <div class="timeline-period">${startDate.getFullYear()} - ${isCurrent ? 'Presente' : endDate.getFullYear()}</div>
+                    <div class="timeline-duration">${duration}</div>
+                    <div class="timeline-period">${exp.description}</div>
+
+                </div>
+            `;
+            container.appendChild(item);
+        });
+    } catch (error) {
+        console.error('Erro ao carregar timeline de experiências:', error);
+    }
 }
 
-// Simulação da Azure Function (para demonstração)
-async function simulateAzureFunctionCall(skills) {
-  return skills.map((skill) => {
-    const dataInicio = new Date(skill.dataInicio);
-    const agora = new Date();
-    const tempo = calculateTimeDifference(dataInicio, agora);
 
-    return {
-      ...skill,
-      tempoExperiencia: tempo,
-    };
-  });
-}
+function createTimelineCard(exp, container, isCurrent) {
+    const startDate = new Date(exp.startDate);
+    const endDate = exp.endDate ? new Date(exp.endDate) : new Date();
+    const duration = calculateDuration(startDate, endDate);
+    const isCurrentJob = !exp.endDate || isCurrent;
 
-// Função para calcular diferença de tempo
-function calculateTimeDifference(startDate, endDate) {
-  const diff = endDate - startDate;
+    // Formatar período
+    const startYear = startDate.getFullYear();
+    const endYear = isCurrentJob ? 'Presente' : endDate.getFullYear();
+    const period = `${startYear} - ${endYear}`;
 
-  const anos = Math.floor(diff / (1000 * 60 * 60 * 24 * 365));
-  const meses = Math.floor(
-    (diff % (1000 * 60 * 60 * 24 * 365)) / (1000 * 60 * 60 * 24 * 30)
-  );
-  const dias = Math.floor(
-    (diff % (1000 * 60 * 60 * 24 * 30)) / (1000 * 60 * 60 * 24)
-  );
-  const horas = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-  const minutos = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-  const segundos = Math.floor((diff % (1000 * 60)) / 1000);
-
-  return {
-    anos,
-    meses,
-    dias,
-    horas,
-    minutos,
-    segundos,
-    tempoFormatado: formatTime(anos, meses, dias, horas, minutos, segundos),
-  };
-}
-
-// Função para formatar tempo
-function formatTime(anos, meses, dias, horas, minutos, segundos) {
-  const partes = [];
-
-  if (anos > 0) partes.push(`${anos} ${anos === 1 ? "ano" : "anos"}`);
-  if (meses > 0) partes.push(`${meses} ${meses === 1 ? "mês" : "meses"}`);
-  if (dias > 0) partes.push(`${dias} ${dias === 1 ? "dia" : "dias"}`);
-  if (horas > 0) partes.push(`${horas} ${horas === 1 ? "hora" : "horas"}`);
-  if (minutos > 0)
-    partes.push(`${minutos} ${minutos === 1 ? "minuto" : "minutos"}`);
-  partes.push(`${segundos} ${segundos === 1 ? "segundo" : "segundos"}`);
-
-  return partes.join(", ");
-}
-
-// Função para criar card de skill
-function createSkillCard(skill) {
-  const card = document.createElement("div");
-  card.className = "skill-card";
-
-  card.innerHTML = `
-        <div class="skill-name">${skill.nome}</div>
-        <div class="skill-time">${skill.tempoExperiencia.tempoFormatado}</div>
-        <div class="skill-category">${skill.categoria}</div>
+    const card = document.createElement('div');
+    card.className = 'timeline-card';
+    card.innerHTML = `
+        ${isCurrentJob ? '<span class="timeline-current-badge">Atual</span>' : ''}
+        <div class="timeline-card-content">
+            <div class="timeline-company">${exp.company}</div>
+            <div class="timeline-period">${period}</div>
+            <div class="timeline-duration">${duration}</div>
+        </div>
+        <div class="timeline-year">${startYear}</div>
     `;
 
-  return card;
+    container.appendChild(card);
 }
 
-// Função para iniciar timer de atualização das skills
-function startSkillsUpdateTimer() {
-  // Atualizar a cada segundo
-  skillsUpdateInterval = setInterval(() => {
-    loadSkillsCounter();
-  }, 1000);
+//  Carregar Skills para o Filtro
+async function loadAllSkillsForFilter() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/skill`);
+        if (!response.ok) throw new Error(`Erro de rede: ${response.status}`);
+
+        const skills = await response.json();
+        const selectElement = document.getElementById('skill-filter');
+        if (!selectElement) return;
+
+        selectElement.innerHTML = '<option value="">Exibir todos os projetos</option>';
+        skills.sort((a, b) => a.name.localeCompare(b.name));
+
+        skills.forEach(skill => {
+            const option = document.createElement('option');
+            option.value = skill.id;
+            option.textContent = skill.name;
+            selectElement.appendChild(option);
+        });
+    } catch (error) {
+        console.error('Erro ao carregar skills para o filtro:', error);
+    }
 }
 
-// Função para mostrar loading
-function showLoading(container) {
-  container.innerHTML = '<div class="loading">Carregando...</div>';
+//  Configurar listeners do filtro
+function setupFilterListeners() {
+    const skillFilter = document.getElementById('skill-filter');
+    if (!skillFilter) return;
+
+    skillFilter.addEventListener('change', function () {
+        const skillId = this.value;
+        const filterInfo = document.getElementById('filter-info');
+
+        if (skillId) {
+            loadProjectsBySkill(parseInt(skillId));
+        } else {
+            filterInfo.style.display = 'none';
+            loadAllProjects();
+        }
+    });
 }
 
-// Função para mostrar resultado
-function showResult(container, data, type) {
-  const jsonString = JSON.stringify(data, null, 2);
-  container.innerHTML = `<pre class="${type}">${jsonString}</pre>`;
+//  Carregar Projetos Filtrados por Skill
+async function loadProjectsBySkill(skillId) {
+    try {
+        console.log(`Carregando projetos filtrados pela skill ID: ${skillId}`);
+        const response = await fetch(`${API_BASE_URL}/project/${skillId}`);
+        if (!response.ok) throw new Error(`Erro na API: ${response.status}`);
+
+        const data = await response.json();
+        console.log('Dados recebidos:', data);
+
+        const container = document.getElementById('projects-container');
+        const filterInfo = document.getElementById('filter-info');
+
+        container.innerHTML = '';
+        filterInfo.style.display = 'block';
+
+        const experienceText = data.years > 0
+            ? `${data.years} ano${data.years > 1 ? 's' : ''}${data.months > 0 ? ` e ${data.months} ${data.months > 1 ? 'meses' : 'mês'}` : ''}`
+            : `${data.months} ${data.months > 1 ? 'meses' : 'mês'}`;
+
+        filterInfo.innerHTML = `
+            <div class="filter-info-content">
+                <div class="filter-stat">
+                    <i class="fas fa-code"></i>
+                    <span>Tecnologia: <strong>${data.skillName}</strong></span>
+                </div>
+                <div class="filter-stat">
+                    <i class="fas fa-project-diagram"></i>
+                    <span>Projetos encontrados: <strong>${data.projects.length}</strong></span>
+                </div>
+                <div class="filter-stat">
+                    <i class="fas fa-clock"></i>
+                    <span>Experiência total: <strong>${experienceText}</strong></span>
+                </div>
+            </div>
+        `;
+
+        document.getElementById('total-projects').textContent = data.projects.length;
+
+        if (data.projects.length === 0) {
+            container.innerHTML = `
+                <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #7f8c8d;">
+                    <i class="fas fa-inbox" style="font-size: 3rem; margin-bottom: 15px; color: #bdc3c7;"></i>
+                    <p style="font-size: 1.2rem;">Nenhum projeto encontrado com essa tecnologia.</p>
+                </div>
+            `;
+            return;
+        }
+
+        renderProjects(data.projects, skillId);
+    } catch (error) {
+        console.error('Erro ao carregar projetos por skill:', error);
+        handleProjectsError();
+    }
 }
 
-// Função para mostrar erro nas skills
-function showSkillsError() {
-  const skillsGrid = document.getElementById("skills-grid");
-  skillsGrid.innerHTML = `
-        <div class="skill-card" style="background: #e74c3c;">
-            <div class="skill-name">Erro ao carregar skills</div>
-            <div class="skill-time">Verifique se a API está rodando</div>
-            <div class="skill-category">Erro</div>
+//  Carregar TODOS os Projetos
+async function loadAllProjects() {
+    try {
+        console.log('Carregando todos os projetos...');
+        const response = await fetch(`${API_BASE_URL}/project/projects-with-company`);
+        if (!response.ok) throw new Error(`Erro na API: ${response.status}`);
+
+        const projects = await response.json();
+        console.log('Projetos carregados:', projects.length);
+
+        document.getElementById('total-projects').textContent = projects.length;
+        const container = document.getElementById('projects-container');
+        container.innerHTML = '';
+
+        if (projects.length === 0) {
+            container.innerHTML = `
+                <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #7f8c8d;">
+                    <i class="fas fa-inbox" style="font-size: 3rem; margin-bottom: 15px; color: #bdc3c7;"></i>
+                    <p style="font-size: 1.2rem;">Nenhum projeto cadastrado.</p>
+                </div>
+            `;
+            return;
+        }
+
+        renderProjects(projects);
+    } catch (error) {
+        console.error('Erro ao carregar projetos:', error);
+        handleProjectsError();
+    }
+}
+
+// [NOVA FUNÇÃO] Renderizar projetos (reutilizável)
+function renderProjects(projects, skillId = null) {
+    const container = document.getElementById('projects-container');
+    const sortedProjects = [...projects].sort((a, b) => new Date(b.startDate) - new Date(a.startDate));
+
+    sortedProjects.forEach(project => {
+        const startDate = new Date(project.startDate);
+        const endDate = project.endDate ? new Date(project.endDate) : new Date();
+        const duration = calculateDuration(startDate, endDate);
+        const companyName = project.companyName || project.experience?.company || 'Empresa não informada';
+        const isCurrentProject = !project.endDate;
+
+        const card = document.createElement('div');
+        card.className = 'project-card';
+        card.innerHTML = `
+            <div class="project-header">
+                ${isCurrentProject ? '<span class="project-current-badge"><i class="fas fa-circle"></i> Projeto Atual</span>' : ''}
+                <div class="project-name">${project.name}</div>
+                <div class="project-position">${project.position}</div>
+                <div class="project-meta">
+                    <span class="project-company-tag">
+                        <i class="fas fa-building"></i> ${companyName}
+                    </span>
+                    <span class="project-duration">
+                        <i class="fas fa-clock"></i> ${duration}
+                    </span>
+                </div>
+            </div>
+            <p class="project-description">${project.description}</p>
+            <div class="skills-tags" id="project-skills-${project.id}"></div>
+        `;
+        container.appendChild(card);
+
+        // Adicionar skills ao card
+        const skillsContainer = document.getElementById(`project-skills-${project.id}`);
+        if (project.skills && project.skills.length > 0) {
+            project.skills.forEach(skill => {
+                const tag = document.createElement('span');
+                tag.className = `skill-tag ${getCategoryClass(skill.category)}`;
+                tag.textContent = skill.name;
+
+                // Destacar a skill filtrada
+                if (skillId && skill.id === skillId) {
+                    tag.style.boxShadow = '0 0 0 3px rgba(102, 126, 234, 0.3)';
+                    tag.style.transform = 'scale(1.05)';
+                }
+
+                skillsContainer.appendChild(tag);
+            });
+        }
+    });
+}
+
+//  Tratamento de erro para projetos
+function handleProjectsError() {
+    const container = document.getElementById('projects-container');
+    const filterInfo = document.getElementById('filter-info');
+
+    if (filterInfo) filterInfo.style.display = 'none';
+
+    container.innerHTML = `
+        <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #e74c3c;">
+            <i class="fas fa-exclamation-triangle" style="font-size: 3rem; margin-bottom: 15px;"></i>
+            <p style="font-size: 1.2rem;">Erro ao carregar projetos. Tente novamente.</p>
         </div>
     `;
 }
 
-// Função para parar timer (útil para cleanup)
-function stopSkillsUpdateTimer() {
-  if (skillsUpdateInterval) {
-    clearInterval(skillsUpdateInterval);
-  }
-}
+//  Carregar Skills
+//  Carregar Skills
+async function loadSkills() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/skill`);
+        if (!response.ok) throw new Error(`Erro de rede: ${response.status}`);
 
-// Cleanup quando a página é fechada
-window.addEventListener("beforeunload", function () {
-  stopSkillsUpdateTimer();
-});
+        const skills = await response.json();
+        document.getElementById('total-skills').textContent = skills.length;
 
-// Função para testar conectividade com a API
-async function testApiConnection() {
-  try {
-    const response = await fetch(`${API_BASE_URL}/Contact`);
-    if (response.ok) {
-      console.log("✅ API está respondendo");
-      return true;
-    } else {
-      console.log("❌ API retornou erro:", response.status);
-      return false;
-    }
-  } catch (error) {
-    console.log("❌ Erro ao conectar com a API:", error.message);
-    return false;
-  }
-}
+        const list = document.getElementById('skills-list');
+        if (!list) return;
 
-// Executar teste de conectividade na inicialização
-testApiConnection().then((isConnected) => {
-  if (!isConnected) {
-    console.log(
-      "💡 Dica: Certifique-se de que a API .NET Core está rodando em http://localhost:5000"
-    );
-  }
-});
+        list.innerHTML = '';
+        skills.sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
 
-// Adicionar funcionalidade de busca (bonus)
-//function addSearchFunctionality() {
-//  const searchInput = document.createElement("input");
-//  searchInput.type = "text";
-//  searchInput.placeholder = "Buscar endpoints...";
-//  searchInput.className = "search-input";
+        skills.forEach(skill => {
+            const startDate = new Date(skill.startDate);
+            const starRating = calculateStarRating(startDate);
+            const starsHtml = renderStars(skill.ProficiencyLevel);
 
-//  searchInput.addEventListener("input", function (e) {
-//    const searchTerm = e.target.value.toLowerCase();
-//    const endpointGroups = document.querySelectorAll(".endpoint-group");
-
-//    endpointGroups.forEach((group) => {
-//      const path = group.querySelector(".path").textContent.toLowerCase();
-//      const description = group
-//        .querySelector(".description")
-//        .textContent.toLowerCase();
-
-//      if (path.includes(searchTerm) || description.includes(searchTerm)) {
-//        group.style.display = "block";
-//      } else {
-//        group.style.display = "none";
-//      }
-//    });
-//  });
-
-//  const endpointsSection = document.querySelector(".endpoints");
-//  const endpointsTitle = endpointsSection.querySelector("h2");
-//  endpointsTitle.after(searchInput);
-//}
-
-function addSearchFunctionality() {
-    // Criar container do input
-    const searchContainer = document.createElement("div");
-    searchContainer.className = "search-container";
-
-    // Criar input de busca
-    const searchInput = document.createElement("input");
-    searchInput.type = "text";
-    searchInput.placeholder = "Buscar endpoints...";
-    searchInput.className = "search-input";
-
-    // Criar ícone de lupa (Font Awesome)
-    const searchIcon = document.createElement("i");
-    searchIcon.className = "fas fa-search"; // use Font Awesome
-
-    // Adicionar input e ícone ao container
-    searchContainer.appendChild(searchInput);
-    searchContainer.appendChild(searchIcon);
-
-    // Inserir container após o título da seção de endpoints
-    const endpointsSection = document.querySelector(".endpoints");
-    const endpointsTitle = endpointsSection.querySelector("h2");
-    endpointsTitle.after(searchContainer);
-
-    // Função de filtragem dos endpoints
-    searchInput.addEventListener("input", function (e) {
-        const searchTerm = e.target.value.toLowerCase();
-        const endpointGroups = document.querySelectorAll(".endpoint-group");
-
-        endpointGroups.forEach((group) => {
-            const path = group.querySelector(".path").textContent.toLowerCase();
-            const description = group
-                .querySelector(".description")
-                .textContent.toLowerCase();
-
-            if (path.includes(searchTerm) || description.includes(searchTerm)) {
-                group.style.display = "block";
-            } else {
-                group.style.display = "none";
-            }
+            const item = document.createElement('div');
+            item.className = 'skill-item';
+            item.innerHTML = `
+                <div class="skill-name-row">
+                    <span class="skill-name">${skill.name}</span>
+                    <div class="skill-rating" title="Proficiência: ${starRating.toFixed(1)} estrelas">
+                        ${starsHtml}
+                    </div>
+                </div>
+            `;
+            list.appendChild(item);
         });
-    });
+    } catch (error) {
+        console.error('Erro ao carregar skills:', error);
+    }
 }
 
+//  Carregar Certificações
+async function loadCertifications() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/certification`);
+        if (!response.ok) throw new Error(`Erro de rede: ${response.status}`);
 
-// Adicionar funcionalidade de busca após carregamento
-document.addEventListener("DOMContentLoaded", function () {
-  setTimeout(addSearchFunctionality, 1000);
+        const certs = await response.json();
+        document.getElementById('total-certs').textContent = certs.length;
+    } catch (error) {
+        console.error('Erro ao carregar certificações:', error);
+    }
+}
+
+//  Funções Auxiliares
+function calculateDuration(start, end) {
+    const months = (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth());
+    const years = Math.floor(months / 12);
+    const remainingMonths = months % 12;
+
+    if (years > 0 && remainingMonths > 0) {
+        return `${years} ano${years > 1 ? 's' : ''} e ${remainingMonths} ${remainingMonths > 1 ? 'meses' : 'mês'}`;
+    } else if (years > 0) {
+        return `${years} ano${years > 1 ? 's' : ''}`;
+    } else {
+        return `${remainingMonths} ${remainingMonths > 1 ? 'meses' : 'mês'}`;
+    }
+}
+
+function calculateStarRating(startDate) {
+    const now = new Date();
+    const diffTime = Math.abs(now - startDate);
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    const yearsExperience = diffDays / 365.25;
+    return Math.min(5, yearsExperience);
+}
+
+function renderStars(rating) {
+    let starsHtml = '';
+    const maxStars = 5;
+    for (let i = 1; i <= maxStars; i++) {
+        if (rating >= i) {
+            starsHtml += '<i class="fas fa-star filled-star"></i>';
+        } else if (rating >= i - 0.5) {
+            starsHtml += '<i class="fas fa-star-half-alt filled-star"></i>';
+        } else {
+            starsHtml += '<i class="far fa-star empty-star"></i>';
+        }
+    }
+    return starsHtml;
+}
+
+function formatDate(date) {
+    return date.toLocaleDateString('pt-BR', { month: 'short', year: 'numeric' });
+}
+
+function getCategoryClass(category) {
+    const categoryName = typeof category === 'string' ? category.toLowerCase() : '';
+    const map = {
+        'backend': 'backend',
+        'frontend': 'frontend',
+        'database': 'database',
+        'cloud': 'cloud',
+        'management': 'management',
+        'programminglanguage': 'programminglanguage',
+        'devops': 'devops'
+    };
+    return map[categoryName] || 'backend';
+}
+
+//  Download PDF
+function downloadPDF() {
+    alert('Funcionalidade de download de PDF será implementada em breve!');
+}
+
+//  Form de sugestões
+document.addEventListener('DOMContentLoaded', function () {
+    const suggestionsForm = document.getElementById('suggestions-form');
+    if (suggestionsForm) {
+        suggestionsForm.addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const loading = document.getElementById('suggestion-loading');
+            const form = e.target;
+
+            if (loading) loading.classList.add('show');
+            setTimeout(() => {
+                alert('Obrigado pela sua sugestão! Ela será analisada em breve.');
+                form.reset();
+                if (loading) loading.classList.remove('show');
+            }, 1500);
+        });
+    }
 });
-
-function toggleCard(card) {
-    card.classList.toggle('expanded');
-}
