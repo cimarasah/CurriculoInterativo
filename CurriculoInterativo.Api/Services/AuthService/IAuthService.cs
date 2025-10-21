@@ -1,13 +1,14 @@
-﻿using CurriculoInterativo.Api.DTOs;
+﻿using CurriculoInterativo.Api.Models;
+using CurriculoInterativo.Api.DTOs.TokenDto;
 
 namespace CurriculoInterativo.Api.Services.AuthService
 {
     public interface IAuthService
     {
-        Task<TokenResponseDto?> LoginAsync(LoginDto loginDto);
-        Task<TokenResponseDto?> RegisterAsync(RegisterDto registerDto);
-        Task<TokenResponseDto?> RefreshTokenAsync(string refreshToken);
+        Task<TokenResponse?> LoginAsync(LoginModel loginDto);
+        Task<TokenResponse?> RegisterAsync(RegisterModel registerDto);
+        Task<TokenResponse?> RefreshTokenAsync(string refreshToken);
         Task<bool> RevokeTokenAsync(string refreshToken);
-        Task<UserDto?> GetCurrentUserAsync(int userId);
+        Task<UserModel?> GetCurrentUserAsync(int userId);
     }
 }

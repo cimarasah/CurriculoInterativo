@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using CurriculoInterativo.Api.DTOs;
+using CurriculoInterativo.Api.DTOs.ExperienceDto;
 using CurriculoInterativo.Api.Repositories.ExperienceRepository;
 
 namespace CurriculoInterativo.Api.Services.ExperienceService
@@ -15,11 +15,11 @@ namespace CurriculoInterativo.Api.Services.ExperienceService
             _mapper = mapper;
         }
 
-        public async Task<List<ExperienceMiniDto>> GetExperiencesMiniAsync()
+        public async Task<List<ExperienceResponse>> GetExperiencesMiniAsync()
         {
             var experiences = await _repository.GetAllAsync();
 
-            var experienceDtos = _mapper.Map<List<ExperienceMiniDto>>(experiences);
+            var experienceDtos = _mapper.Map<List<ExperienceResponse>>(experiences);
 
             return experienceDtos;
         }

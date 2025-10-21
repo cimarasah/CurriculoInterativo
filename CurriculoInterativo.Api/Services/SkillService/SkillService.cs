@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using CurriculoInterativo.Api.DTOs;
+using CurriculoInterativo.Api.Models;
 using CurriculoInterativo.Api.Repositories.SkillRepository;
 
 namespace CurriculoInterativo.Api.Services.SkillService
@@ -15,11 +15,11 @@ namespace CurriculoInterativo.Api.Services.SkillService
             _mapper = mapper;
         }
 
-        public async Task<List<SkillDto>> GetSkillsAsync()
+        public async Task<List<SkillModel>> GetSkillsAsync()
         {
             var skills = await _repository.GetAllAsync();
 
-            var skillDtos = _mapper.Map<List<SkillDto>>(skills);
+            var skillDtos = _mapper.Map<List<SkillModel>>(skills);
 
             return skillDtos;
         }

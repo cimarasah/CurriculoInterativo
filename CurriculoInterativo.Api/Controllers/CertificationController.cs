@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
-using CurriculoInterativo.Api.Services;
-using CurriculoInterativo.Api.DTOs;
+using CurriculoInterativo.Api.Models;
 using CurriculoInterativo.Api.Services.CertificationService;
 using CurriculoInterativo.Api.Enums;
 using CurriculoInterativo.Api.Utils.Exceptions;
@@ -30,7 +29,7 @@ namespace CertificationInterativo.Api.Controllers
         /// </summary>
         /// <returns>Lista de certificações</returns>
         [HttpGet]
-        public async Task<ActionResult<List<CertificationDto>>> GetCertifications()
+        public async Task<ActionResult<List<CertificationModel>>> GetCertifications()
         {
             try
             {
@@ -49,7 +48,7 @@ namespace CertificationInterativo.Api.Controllers
         /// <param name="categoria">Categoria das certificações</param>
         /// <returns>Lista de certificações da categoria especificada</returns>
         [HttpGet("category/{category}")]
-        public async Task<ActionResult<List<CertificationDto>>> GetCertificationsByCategory(SkillCategory category)
+        public async Task<ActionResult<List<CertificationModel>>> GetCertificationsByCategory(SkillCategory category)
         {
             try
             {
@@ -66,7 +65,7 @@ namespace CertificationInterativo.Api.Controllers
         /// </summary>
         [HttpGet("{id:int}")]
         [AllowAnonymous]
-        public async Task<ActionResult<CertificationDto>> GetCertification(int id)
+        public async Task<ActionResult<CertificationModel>> GetCertification(int id)
         {
             var certification = await _certificationService.GetCertificationByIdAsync(id);
             if (certification == null)
@@ -79,7 +78,7 @@ namespace CertificationInterativo.Api.Controllers
         /// </summary>
         [HttpPost]
         [Authorize(Roles = "Owner")]
-        public async Task<ActionResult<CertificationDto>> CreateCertification([FromBody] CertificationDto certificationDto)
+        public async Task<ActionResult<CertificationModel>> CreateCertification([FromBody] CertificationModel certificationDto)
         {
             if (!ModelState.IsValid)
                 throw new ValidationException("Dados inválidos enviados");
@@ -98,7 +97,7 @@ namespace CertificationInterativo.Api.Controllers
         /// </summary>
         [HttpPut("{id:int}")]
         [Authorize(Roles = "Owner")]
-        public async Task<ActionResult<CertificationDto>> UpdateCertification(int id, [FromBody] CertificationDto certificationDto)
+        public async Task<ActionResult<CertificationModel>> UpdateCertification(int id, [FromBody] CertificationModel certificationDto)
         {
             if (!ModelState.IsValid)
                 throw new ValidationException("Dados inválidos enviados");

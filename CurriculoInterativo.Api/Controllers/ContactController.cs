@@ -26,7 +26,7 @@ namespace CurriculoInterativo.Api.Controllers
         /// </summary>
         [HttpGet]
         [AllowAnonymous]
-        public async Task<ActionResult<List<ContactDto>>> GetContacts()
+        public async Task<ActionResult<List<ContactRequest>>> GetContacts()
         {
             var contacts = await _contactService.GetContactsAsync();
             return Ok(contacts);
@@ -37,7 +37,7 @@ namespace CurriculoInterativo.Api.Controllers
         /// </summary>
         [HttpGet("{id:int}")]
         [AllowAnonymous]
-        public async Task<ActionResult<ContactDto>> GetContact(int id)
+        public async Task<ActionResult<ContactRequest>> GetContact(int id)
         {
             var contact = await _contactService.GetContactByIdAsync(id);
             if (contact == null)
@@ -51,7 +51,7 @@ namespace CurriculoInterativo.Api.Controllers
         /// </summary>
         [HttpPost]
         [Authorize(Roles = "Owner")]
-        public async Task<ActionResult<ContactDto>> CreateContact([FromBody] ContactDto contactDto)
+        public async Task<ActionResult<ContactRequest>> CreateContact([FromBody] ContactRequest contactDto)
         {
             if (!ModelState.IsValid)
                 throw new ValidationException("Dados inválidos enviados");
@@ -70,7 +70,7 @@ namespace CurriculoInterativo.Api.Controllers
         /// </summary>
         [HttpPut("{id:int}")]
         [Authorize(Roles = "Owner")]
-        public async Task<ActionResult<ContactDto>> UpdateContact(int id, [FromBody] ContactDto contactDto)
+        public async Task<ActionResult<ContactRequest>> UpdateContact(int id, [FromBody] ContactRequest contactDto)
         {
             if (!ModelState.IsValid)
                 throw new ValidationException("Dados inválidos enviados");

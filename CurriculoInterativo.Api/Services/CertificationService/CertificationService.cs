@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
-using CurriculoInterativo.Api.DTOs;
-using CurriculoInterativo.Api.Enums;
 using CurriculoInterativo.Api.Models;
+using CurriculoInterativo.Api.Enums;
+using CurriculoInterativo.Api.Entities;
 using CurriculoInterativo.Api.Repositories.CertificationRepository;
 using CurriculoInterativo.Api.Utils.Exceptions;
 using System.ComponentModel.DataAnnotations;
@@ -19,30 +19,30 @@ namespace CurriculoInterativo.Api.Services.CertificationService
             _mapper = mapper;
         }
 
-        public async Task<List<CertificationDto>> GetCertificationsAsync()
+        public async Task<List<CertificationModel>> GetCertificationsAsync()
         {
             var certifications = await _repository.GetAllAsync();
 
-            var certificationDtos = _mapper.Map<List<CertificationDto>>(certifications);
+            var certificationDtos = _mapper.Map<List<CertificationModel>>(certifications);
 
             return certificationDtos;
         }
-        public async Task<IEnumerable<CertificationDto>> GetCertificationsByCategoryAsync(SkillCategory category)
+        public async Task<IEnumerable<CertificationModel>> GetCertificationsByCategoryAsync(SkillCategory category)
         {
             var certifications = await _repository.GetByCategoryAsync(category);
 
-            return _mapper.Map<IEnumerable<CertificationDto>>(certifications);
+            return _mapper.Map<IEnumerable<CertificationModel>>(certifications);
         }
-        public async Task<CertificationDto?> GetCertificationByIdAsync(int id)
+        public async Task<CertificationModel?> GetCertificationByIdAsync(int id)
         {
             var certification = await _repository.GetByIdAsync(id);
             if (certification == null)
                 throw new NotFoundException($"Certificação com ID {id} não encontrado");
 
-            return _mapper.Map<CertificationDto>(certification);
+            return _mapper.Map<CertificationModel>(certification);
         }
 
-        public async Task<CertificationDto> CreateCertificationAsync(CertificationDto certificationDto, int userId)
+        public async Task<CertificationModel> CreateCertificationAsync(CertificationModel certificationDto, int userId)
         {
             if (certificationDto == null)
                 throw new ValidationException("Dados do Certificação não podem ser nulos");
@@ -51,10 +51,10 @@ namespace CurriculoInterativo.Api.Services.CertificationService
 
             await _repository.AddAsync(certification);
 
-            return _mapper.Map<CertificationDto>(certification);
+            return _mapper.Map<CertificationModel>(certification);
         }
 
-        public async Task<CertificationDto?> UpdateCertificationAsync(int id, CertificationDto certificationDto, int userId)
+        public async Task<CertificationModel?> UpdateCertificationAsync(int id, CertificationModel certificationDto, int userId)
         {
             var certification = await _repository.GetByIdAsync(id);
             if (certification == null)
@@ -64,7 +64,7 @@ namespace CurriculoInterativo.Api.Services.CertificationService
 
             await _repository.UpdateAsync(certification);
 
-            return _mapper.Map<CertificationDto>(certification);
+            return _mapper.Map<CertificationModel>(certification);
         }
 
         public async Task<bool> DeleteCertificationAsync(int id, int userId)

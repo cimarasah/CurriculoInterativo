@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using CurriculoInterativo.Api.DTOs;
-using CurriculoInterativo.Api.Models;
+using CurriculoInterativo.Api.Entities;
 using CurriculoInterativo.Api.Repositories.ContactRepository;
 using CurriculoInterativo.Api.Utils.Exceptions;
 using System.ComponentModel.DataAnnotations;
@@ -18,24 +18,24 @@ namespace CurriculoInterativo.Api.Services.ContactService
             _mapper = mapper;
         }
 
-        public async Task<List<ContactDto>> GetContactsAsync()
+        public async Task<List<ContactRequest>> GetContactsAsync()
         {
             var contacts = await _repository.GetAllAsync();
 
-            var contactDtos = _mapper.Map<List<ContactDto>>(contacts);
+            var contactDtos = _mapper.Map<List<ContactRequest>>(contacts);
 
             return contactDtos;
         }
-        public async Task<ContactDto?> GetContactByIdAsync(int id)
+        public async Task<ContactRequest?> GetContactByIdAsync(int id)
         {
             var contact = await _repository.GetByIdAsync(id);
             if (contact == null)
                 throw new NotFoundException($"Contato com ID {id} não encontrado");
 
-            return _mapper.Map<ContactDto>(contact);
+            return _mapper.Map<ContactRequest>(contact);
         }
 
-        public async Task<ContactDto> CreateContactAsync(ContactDto contactDto, int userId)
+        public async Task<ContactRequest> CreateContactAsync(ContactRequest contactDto, int userId)
         {
             if (contactDto == null)
                 throw new ValidationException("Dados do contato não podem ser nulos");
@@ -44,10 +44,10 @@ namespace CurriculoInterativo.Api.Services.ContactService
 
             await _repository.AddAsync(contact);
 
-            return _mapper.Map<ContactDto>(contact);
+            return _mapper.Map<ContactRequest>(contact);
         }
 
-        public async Task<ContactDto?> UpdateContactAsync(int id, ContactDto contactDto, int userId)
+        public async Task<ContactRequest?> UpdateContactAsync(int id, ContactRequest contactDto, int userId)
         {
             var contact = await _repository.GetByIdAsync(id);
             if (contact == null)
@@ -57,7 +57,7 @@ namespace CurriculoInterativo.Api.Services.ContactService
 
             await _repository.UpdateAsync(contact);
 
-            return _mapper.Map<ContactDto>(contact);
+            return _mapper.Map<ContactRequest>(contact);
         }
 
         public async Task<bool> DeleteContactAsync(int id, int userId)

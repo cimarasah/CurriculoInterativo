@@ -1,7 +1,7 @@
 using AutoMapper;
 using CurriculoInterativo.Api;
 using CurriculoInterativo.Api.Mapping;
-using CurriculoInterativo.Api.Models;
+using CurriculoInterativo.Api.Entities;
 using CurriculoInterativo.Api.Repositories.CertificationRepository;
 using CurriculoInterativo.Api.Repositories.ContactRepository;
 using CurriculoInterativo.Api.Repositories.ExperienceRepository;
@@ -29,7 +29,21 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddDbContext<ResumeDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("ResumeDb")));
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("ResumeDb"),
+        sqlOptions =>
+        {
+            // Retry para transient faults
+            sqlOptions.EnableRetryOnFailure(
+                maxRetryCount: 5,
+                maxRetryDelay: TimeSpan.FromSeconds(30),
+                errorNumbersToAdd: null);
+
+            // Aumenta timeout de comandos (se necessário)
+            sqlOptions.CommandTimeout(60); // segundos
+        }
+    )
+);
 
 
 builder.Services.AddControllers()

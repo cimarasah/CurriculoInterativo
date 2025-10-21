@@ -1,4 +1,4 @@
-﻿using CurriculoInterativo.Api.Models;
+﻿using CurriculoInterativo.Api.Entities;
 
 namespace CurriculoInterativo.Api.Repositories.RefreshTokenRepository
 {

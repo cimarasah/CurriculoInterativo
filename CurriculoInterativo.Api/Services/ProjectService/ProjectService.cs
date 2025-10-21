@@ -1,5 +1,4 @@
 ﻿using AutoMapper;
-using CurriculoInterativo.Api.DTOs;
 using CurriculoInterativo.Api.Models;
 using CurriculoInterativo.Api.Repositories.ProjectRepository;
 
@@ -16,20 +15,20 @@ namespace CurriculoInterativo.Api.Services.ProjectService
             _mapper = mapper;
         }
 
-        public async Task<List<ProjectDto>> GetProjectsAsync()
+        public async Task<List<ProjectModel>> GetProjectsAsync()
         {
             var projects = await _repository.GetAllAsync();             
 
-            var projectDtos = _mapper.Map<List<ProjectDto>>(projects);
+            var projectDtos = _mapper.Map<List<ProjectModel>>(projects);
 
             return projectDtos;
         }
-        public async Task<ListProjectBySkillDto> GetProjectsBySkillAsync(int idSkill)
+        public async Task<ListProjectBySkillModel> GetProjectsBySkillAsync(int idSkill)
         {
             var projects = await _repository.GetBySkillAsync(idSkill);
 
             if (projects == null || !projects.Any())
-                return new ListProjectBySkillDto();
+                return new ListProjectBySkillModel();
 
             var skillName = projects.First().Skills.FirstOrDefault(s => s.Id == idSkill)?.Name ?? string.Empty;
 
@@ -49,20 +48,20 @@ namespace CurriculoInterativo.Api.Services.ProjectService
             var years = totalMonths / 12;
             var months = totalMonths % 12;
 
-            return new ListProjectBySkillDto
+            return new ListProjectBySkillModel
             {
                 SkillName = skillName,
                 TotalMonths = totalMonths,
                 Years = years,
                 Months = months,
-                Projects = _mapper.Map<List<ProjectDto>>(projects)
+                Projects = _mapper.Map<List<ProjectModel>>(projects)
             };
         }
-        public async Task<List<ProjectDto>> GetProjectsWithCompanyAsync()
+        public async Task<List<ProjectModel>> GetProjectsWithCompanyAsync()
         {
             var projects = await _repository.GetProjectsWithCompany();
 
-            var projectDtos = _mapper.Map<List<ProjectDto>>(projects);
+            var projectDtos = _mapper.Map<List<ProjectModel>>(projects);
 
             return projectDtos;
         }
