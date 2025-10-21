@@ -1,4 +1,5 @@
-﻿using CurriculoInterativo.Api.DTOs;
+﻿using CurriculoInterativo.Api.Models;
+using CurriculoInterativo.Api.DTOs.TokenDto;
 using CurriculoInterativo.Api.Services.AuthService;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -25,7 +26,7 @@ namespace CurriculoInterativo.Api.Controllers
         /// <param name="loginDto">Dados de login</param>
         /// <returns>Token de acesso e informações do usuário</returns>
         [HttpPost("login")]
-        public async Task<ActionResult<TokenResponseDto>> Login([FromBody] LoginDto loginDto)
+        public async Task<ActionResult<TokenResponse>> Login([FromBody] LoginModel loginDto)
         {
             try
             {
@@ -57,7 +58,7 @@ namespace CurriculoInterativo.Api.Controllers
         /// <param name="registerDto">Dados de registro</param>
         /// <returns>Token de acesso e informações do usuário</returns>
         [HttpPost("register")]
-        public async Task<ActionResult<TokenResponseDto>> Register([FromBody] RegisterDto registerDto)
+        public async Task<ActionResult<TokenResponse>> Register([FromBody] RegisterModel registerDto)
         {
             try
             {
@@ -89,7 +90,7 @@ namespace CurriculoInterativo.Api.Controllers
         /// <param name="request">Refresh token</param>
         /// <returns>Novo token de acesso</returns>
         [HttpPost("refresh")]
-        public async Task<ActionResult<TokenResponseDto>> RefreshToken([FromBody] RefreshTokenRequest request)
+        public async Task<ActionResult<TokenResponse>> RefreshToken([FromBody] RefreshTokenRequest request)
         {
             try
             {
@@ -145,7 +146,7 @@ namespace CurriculoInterativo.Api.Controllers
         /// <returns>Dados do usuário logado</returns>
         [HttpGet("me")]
         [Authorize]
-        public async Task<ActionResult<UserDto>> GetCurrentUser()
+        public async Task<ActionResult<UserModel>> GetCurrentUser()
         {
             try
             {

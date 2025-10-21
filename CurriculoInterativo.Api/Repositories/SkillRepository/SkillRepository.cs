@@ -1,4 +1,4 @@
-﻿using CurriculoInterativo.Api.Models;
+﻿using CurriculoInterativo.Api.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace CurriculoInterativo.Api.Repositories.SkillRepository

@@ -1,4 +1,4 @@
-﻿using CurriculoInterativo.Api.Models;
+﻿using CurriculoInterativo.Api.Entities;
 using System.Security.Claims;
 
 namespace CurriculoInterativo.Api.Services.TokenService

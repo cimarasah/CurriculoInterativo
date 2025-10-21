@@ -1,9 +1,9 @@
-﻿using CurriculoInterativo.Api.DTOs;
+﻿using CurriculoInterativo.Api.DTOs.ExperienceDto;
 
 namespace CurriculoInterativo.Api.Services.ExperienceService
 {
     public interface IExperienceService
     {
-        Task<List<ExperienceMiniDto>> GetExperiencesMiniAsync();
+        Task<List<ExperienceResponse>> GetExperiencesMiniAsync();
     }
 }

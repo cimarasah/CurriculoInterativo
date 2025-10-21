@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
-using CurriculoInterativo.Api.DTOs;
 using CurriculoInterativo.Api.Models;
+using CurriculoInterativo.Api.DTOs.TokenDto;
+using CurriculoInterativo.Api.Entities;
 using CurriculoInterativo.Api.Repositories.UserRepository;
 using CurriculoInterativo.Api.Services.TokenService;
 using Microsoft.AspNetCore.Identity;
@@ -29,7 +30,7 @@ namespace CurriculoInterativo.Api.Services.AuthService
             _logger = logger;
         }
 
-        public async Task<TokenResponseDto?> LoginAsync(LoginDto loginDto)
+        public async Task<TokenResponse?> LoginAsync(LoginModel loginDto)
         {
             try
             {
@@ -58,7 +59,7 @@ namespace CurriculoInterativo.Api.Services.AuthService
 
                 _logger.LogInformation("Login realizado com sucesso para usuário: {Email}", loginDto.Email);
 
-                return new TokenResponseDto
+                return new TokenResponse
                 {
                     Token = token,
                     RefreshToken = refreshToken,
@@ -75,7 +76,7 @@ namespace CurriculoInterativo.Api.Services.AuthService
             }
         }
 
-        public async Task<TokenResponseDto?> RegisterAsync(RegisterDto registerDto)
+        public async Task<TokenResponse?> RegisterAsync(RegisterModel registerDto)
         {
             try
             {
@@ -112,7 +113,7 @@ namespace CurriculoInterativo.Api.Services.AuthService
 
                 _logger.LogInformation("Usuário registrado com sucesso: {Email}", registerDto.Email);
 
-                return new TokenResponseDto
+                return new TokenResponse
                 {
                     Token = token,
                     RefreshToken = refreshToken,
@@ -129,7 +130,7 @@ namespace CurriculoInterativo.Api.Services.AuthService
             }
         }
 
-        public async Task<TokenResponseDto?> RefreshTokenAsync(string refreshToken)
+        public async Task<TokenResponse?> RefreshTokenAsync(string refreshToken)
         {
             try
             {
@@ -155,7 +156,7 @@ namespace CurriculoInterativo.Api.Services.AuthService
 
                 _logger.LogInformation("Token renovado com sucesso para usuário: {UserId}", userId);
 
-                return new TokenResponseDto
+                return new TokenResponse
                 {
                     Token = newToken,
                     RefreshToken = newRefreshToken,
@@ -187,12 +188,12 @@ namespace CurriculoInterativo.Api.Services.AuthService
             }
         }
 
-        public async Task<UserDto?> GetCurrentUserAsync(int userId)
+        public async Task<UserModel?> GetCurrentUserAsync(int userId)
         {
             try
             {
                 var user = await _userRepository.GetByIdAsync(userId);
-                return user == null ? null : _mapper.Map<UserDto>(user);
+                return user == null ? null : _mapper.Map<UserModel>(user);
             }
             catch (Exception ex)
             {

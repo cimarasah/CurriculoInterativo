@@ -1,4 +1,4 @@
-﻿using CurriculoInterativo.Api.Models;
+﻿using CurriculoInterativo.Api.Entities;
 using CurriculoInterativo.Api.Repositories.RefreshTokenRepository;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;

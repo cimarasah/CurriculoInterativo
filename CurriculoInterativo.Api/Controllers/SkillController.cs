@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
-using CurriculoInterativo.Api.DTOs;
+using CurriculoInterativo.Api.Models;
 using CurriculoInterativo.Api.Services.SkillService;
 
 namespace CurriculoInterativo.Api.Controllers
@@ -20,7 +20,7 @@ namespace CurriculoInterativo.Api.Controllers
         /// </summary>
         /// <returns>Informações de habilidade</returns>
         [HttpGet]
-        public async Task<ActionResult<SkillDto>> GetSkill()
+        public async Task<ActionResult<SkillModel>> GetSkill()
         {
             try
             {

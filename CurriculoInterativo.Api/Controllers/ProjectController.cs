@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
-using CurriculoInterativo.Api.DTOs;
+using CurriculoInterativo.Api.Models;
 using CurriculoInterativo.Api.Services.ProjectService;
 
 namespace ProjectInterativo.Api.Controllers
@@ -20,7 +20,7 @@ namespace ProjectInterativo.Api.Controllers
         /// </summary>
         /// <returns>Lista de projetos</returns>
         [HttpGet]
-        public async Task<ActionResult<List<ProjectDto>>> GetProjects()
+        public async Task<ActionResult<List<ProjectModel>>> GetProjects()
         {
             try
             {
@@ -39,7 +39,7 @@ namespace ProjectInterativo.Api.Controllers
         /// <param name="skill">Habilidade dos projetos</param>
         /// <returns>Lista de projetos por habilidade especificada</returns>
         [HttpGet("{idSkill}")]
-        public async Task<ActionResult<ListProjectBySkillDto>> GetProjectsBySkill(int idSkill)
+        public async Task<ActionResult<ListProjectBySkillModel>> GetProjectsBySkill(int idSkill)
         {
             try
             {
@@ -56,7 +56,7 @@ namespace ProjectInterativo.Api.Controllers
         /// </summary>
         /// <returns>Lista de projetos</returns>
         [HttpGet("projects-with-company")]
-        public async Task<ActionResult<List<ProjectDto>>> GetProjectsWithCompanyAsync()
+        public async Task<ActionResult<List<ProjectModel>>> GetProjectsWithCompanyAsync()
         {
             try
             {

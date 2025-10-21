@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
-using CurriculoInterativo.Api.Services;
-using CurriculoInterativo.Api.DTOs;
 using CurriculoInterativo.Api.Services.ExperienceService;
+using CurriculoInterativo.Api.DTOs.ExperienceDto;
 
 namespace CurriculoInterativo.Api.Controllers
 {
@@ -21,7 +20,7 @@ namespace CurriculoInterativo.Api.Controllers
         /// </summary>
         /// <returns>Lista de experiências profissionais</returns>
         [HttpGet]
-        public async Task<ActionResult<List<ExperienceMiniDto>>> GetExperiences()
+        public async Task<ActionResult<List<ExperienceResponse>>> GetExperiences()
         {
             try
             {

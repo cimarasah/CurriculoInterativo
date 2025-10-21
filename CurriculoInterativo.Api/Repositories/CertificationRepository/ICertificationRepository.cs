@@ -1,5 +1,5 @@
 ﻿using CurriculoInterativo.Api.Enums;
-using CurriculoInterativo.Api.Models;
+using CurriculoInterativo.Api.Entities;
 
 namespace CurriculoInterativo.Api.Repositories.CertificationRepository
 {

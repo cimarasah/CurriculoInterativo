@@ -1,4 +1,4 @@
-﻿using CurriculoInterativo.Api.Models;
+﻿using CurriculoInterativo.Api.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace CurriculoInterativo.Api
@@ -128,10 +128,10 @@ namespace CurriculoInterativo.Api
 
             modelBuilder.Entity<Certification>()
                 .Property(c => c.CertificateUrl)
-                .HasMaxLength(500);
+                .HasMaxLength(3000);
 
             modelBuilder.Entity<Certification>()
-                .Property(c => c.ImageUrl)
+                .Property(c => c.CredentialCode)
                 .HasMaxLength(500);
 
             #endregion

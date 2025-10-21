@@ -1,11 +1,11 @@
-﻿using CurriculoInterativo.Api.DTOs;
+﻿using CurriculoInterativo.Api.Models;
 
 namespace CurriculoInterativo.Api.Services.ProjectService
 {
     public interface IProjectService
     {
-        Task<List<ProjectDto>> GetProjectsAsync();
-        Task<List<ProjectDto>> GetProjectsWithCompanyAsync();
-        Task<ListProjectBySkillDto> GetProjectsBySkillAsync(int idSkill);
+        Task<List<ProjectModel>> GetProjectsAsync();
+        Task<List<ProjectModel>> GetProjectsWithCompanyAsync();
+        Task<ListProjectBySkillModel> GetProjectsBySkillAsync(int idSkill);
     }
 }

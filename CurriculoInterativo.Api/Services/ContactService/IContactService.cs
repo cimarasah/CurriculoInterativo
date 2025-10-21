@@ -4,13 +4,13 @@ namespace CurriculoInterativo.Api.Services.ContactService
 {
     public interface IContactService
     {
-        Task<List<ContactDto>> GetContactsAsync();
+        Task<List<ContactRequest>> GetContactsAsync();
 
-        Task<ContactDto?> GetContactByIdAsync(int id);
+        Task<ContactRequest?> GetContactByIdAsync(int id);
 
-        Task<ContactDto> CreateContactAsync(ContactDto contactDto, int userId);
+        Task<ContactRequest> CreateContactAsync(ContactRequest contactDto, int userId);
 
-        Task<ContactDto?> UpdateContactAsync(int id, ContactDto contactDto, int userId);
+        Task<ContactRequest?> UpdateContactAsync(int id, ContactRequest contactDto, int userId);
 
         Task<bool> DeleteContactAsync(int id, int userId);
     }
