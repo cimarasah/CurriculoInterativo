@@ -19,11 +19,14 @@ using CurriculoInterativo.Api.Services.TokenService;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
 using System.Text.Json.Serialization;
+using CurriculoInterativo.Api.Services.CurriculumService;
+using CurriculoInterativo.Api.Services.PdfService;
+using CurriculoInterativo.Api.Repositories.SuggestionRepository;
+using Microsoft.AspNetCore.HttpOverrides;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -75,6 +78,8 @@ builder.Services.AddScoped<IProjectRepository, ProjectRepository>();
 builder.Services.AddScoped<ISkillRepository, SkillRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
+builder.Services.AddScoped<ISuggestionRepository, SuggestionRepository>();
+
 
 
 // Services
@@ -85,6 +90,8 @@ builder.Services.AddScoped<IProjectService, ProjectService>();
 builder.Services.AddScoped<ISkillService, SkillService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddScoped<ICurriculumService, CurriculumService>();
+builder.Services.AddScoped<IPdfService, PdfService>();
 
 
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
@@ -149,6 +156,12 @@ builder.Services.AddCors(options =>
 
 // Configuração dos controllers
 builder.Services.AddControllers();
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders =
+        ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+});
+
 
 // Configuração do Swagger com suporte a JWT
 builder.Services.AddEndpointsApiExplorer();
@@ -205,6 +218,7 @@ builder.Logging.AddDebug();
 
 var app = builder.Build();
 
+app.UseForwardedHeaders();
 //Configuraçãos para o frontend
 app.UseDefaultFiles();
 app.UseStaticFiles();

@@ -2,7 +2,7 @@
 
 namespace CurriculoInterativo.Api.Entities
 {
-    public class CurriculumDownloadLead
+    public class Suggestion
     {
         public int Id { get; set; }
 
@@ -32,8 +32,5 @@ namespace CurriculoInterativo.Api.Entities
         [MaxLength(500)]
         public string? UserAgent { get; set; }
 
-        public int DownloadCount { get; set; } = 1;
-
-        public DateTime? LastDownloadAt { get; set; }
     }
 }

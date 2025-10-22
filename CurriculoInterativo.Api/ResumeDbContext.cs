@@ -173,6 +173,14 @@ namespace CurriculoInterativo.Api
 
             #endregion
 
+            #region Configurações da entidade CurriculumDownloadLead
+            modelBuilder.Entity<Suggestion>()
+                .Property(r => r.Email)
+                .HasMaxLength(200)
+                .IsRequired();
+
+            #endregion
+
             #region Relacionamentos
             // Experience -> Projects (One-to-Many)
             modelBuilder.Entity<Project>()
