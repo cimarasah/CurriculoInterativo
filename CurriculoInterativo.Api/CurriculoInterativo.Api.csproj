@@ -29,11 +29,4 @@
 		<PackageReference Include="Swashbuckle.AspNetCore" Version="6.8.0" />
 	</ItemGroup>
 
-	<ItemGroup>
-	  <Folder Include="Repositories\CurriculumRepository\" />
-	  <Folder Include="Repositories\CurriculumLeadRepository\" />
-	  <Folder Include="Services\CurriculumService\" />
-	  <Folder Include="Services\PdfService\" />
-	</ItemGroup>
-
 </Project>

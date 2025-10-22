@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:5083/api';
+const API_BASE_URL = 'http://localhost:5083/api'; // PRIMEIRA E ÚNICA DECLARAÇÃO
 
 // Inicialização
 document.addEventListener('DOMContentLoaded', function () {
@@ -324,8 +324,6 @@ function handleProjectsError() {
 }
 
 //  Carregar Skills
-//  Carregar Skills
-a//  Carregar Skills
 async function loadSkills() {
     try {
         const response = await fetch(`${API_BASE_URL}/skill`);
@@ -452,10 +450,74 @@ function getCategoryClass(category) {
 }
 
 //  Download PDF
-function downloadPDF() {
-    alert('Funcionalidade de download de PDF será implementada em breve!');
-}
+/**
+ * Chama a rota do backend e inicia o download do arquivo PDF.
+ */
+async function downloadPDF() {
 
+
+    const downloadButton = document.querySelector('.btn-download');
+
+    if (downloadButton) {
+        downloadButton.disabled = true;
+        downloadButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Baixando...';
+    }
+
+    try {
+        // 1. Chama a rota de download usando GET, sem duplicação de /api/
+        const response = await fetch(`${API_BASE_URL}/Curriculum/download`, {
+            method: 'GET' // Mantenha GET, conforme seu Controller C#
+        });
+
+        if (!response.ok) {
+            console.error('Erro de resposta do servidor:', response.status);
+            const errorText = await response.text();
+            throw new Error(`Falha ao obter o PDF do servidor. Status: ${response.status}. Detalhe: ${errorText.substring(0, 100)}...`);
+        }
+        const contentDisposition = response.headers.get('Content-Disposition');
+        let fileName = 'curriculo_download.pdf'; // Fallback
+
+        if (contentDisposition) {
+            // Expressão regular para buscar o nome do arquivo.
+            // Busca por filename* (UTF-8) primeiro e, se falhar, por filename=.
+            const filenameMatch = contentDisposition.match(/filename\*=UTF-8''(.+?)(;|$)|filename="?(.+?)"?(;|$)/i);
+
+            if (filenameMatch && (filenameMatch[1] || filenameMatch[3])) {
+                // Decodifica o nome do arquivo se estiver no formato filename* (UTF-8)
+                const encodedFilename = filenameMatch[1] || filenameMatch[3];
+                // Usa decodeURIComponent para tratar espaços e caracteres especiais (se for filename*)
+                fileName = decodeURIComponent(encodedFilename.replace(/"/g, '').split(';')[0]);
+            }
+        }
+
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+
+        const a = document.createElement('a');
+        a.href = url;
+
+        // CORREÇÃO ESSENCIAL: Garante que o navegador BAiXE o conteúdo em vez de navegar para ele.
+        // O nome do arquivo será sobrescrito pelo backend.
+        
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click(); // Dispara o download
+
+        // Limpa
+        a.remove();
+        window.URL.revokeObjectURL(url);
+
+
+    } catch (error) {
+        console.error('Erro ao baixar o PDF:', error);
+        alert('Ocorreu um erro ao tentar baixar o arquivo. Tente novamente.');
+    } finally {
+        if (downloadButton) {
+            downloadButton.disabled = false;
+            downloadButton.innerHTML = '<i class="fas fa-download"></i> Baixar Currículo em PDF';
+        }
+    }
+}
 //  Form de sugestões
 document.addEventListener('DOMContentLoaded', function () {
     const suggestionsForm = document.getElementById('suggestions-form');
@@ -474,3 +536,4 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 });
+// CHAVE DE FECHAMENTO REMOVIDA AQUI
