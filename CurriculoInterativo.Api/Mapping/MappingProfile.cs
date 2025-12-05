@@ -21,6 +21,9 @@ namespace CurriculoInterativo.Api.Mapping
             CreateMap<Contact, ContactModel>();
             CreateMap<ContactModel, Contact>();
 
+            CreateMap<Contact, ContactRequest>();
+            CreateMap<ContactRequest, Contact>();
+
             // Experience mappings
             CreateMap<Experience, ExperienceModel>();
             CreateMap<ExperienceModel, Experience>();
