@@ -26,11 +26,19 @@ using System.Text.Json.Serialization;
 using CurriculoInterativo.Api.Services.CurriculumService;
 using CurriculoInterativo.Api.Services.PdfService;
 using CurriculoInterativo.Api.Repositories.SuggestionRepository;
+using CurriculoInterativo.Api.Services.AIService;
+using CurriculoInterativo.Api.Services.DedicatedCurriculumService;
+using CurriculoInterativo.Api.Repositories.PasswordResetTokenRepository;
+using CurriculoInterativo.Api.Services.EmailService;
+using CurriculoInterativo.Api.Services.GoogleAuthService;
+using CurriculoInterativo.Api.Repositories.CurriculumGenerationRepository;
+using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.AspNetCore.DataProtection;
+using System.IO;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
 builder.Services.AddDbContext<ResumeDbContext>(options =>
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("ResumeDb"),
@@ -42,7 +50,7 @@ builder.Services.AddDbContext<ResumeDbContext>(options =>
                 maxRetryDelay: TimeSpan.FromSeconds(30),
                 errorNumbersToAdd: null);
 
-            // Aumenta timeout de comandos (se necessário)
+            // Aumenta timeout de comandos (se necessï¿½rio)
             sqlOptions.CommandTimeout(60); // segundos
         }
     )
@@ -55,6 +63,9 @@ builder.Services.AddControllers()
         options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
     });
 
+// HttpContextAccessor para capturar IP e User-Agent
+builder.Services.AddHttpContextAccessor();
+
 
 // AutoMapper
 var mapperConfig = new MapperConfiguration(mc =>
@@ -65,7 +76,7 @@ var mapperConfig = new MapperConfiguration(mc =>
 IMapper mapper = mapperConfig.CreateMapper();
 builder.Services.AddSingleton(mapper);
 
-// Configuração do Identity para hash de senhas
+// Configuraï¿½ï¿½o do Identity para hash de senhas
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 
 
@@ -79,10 +90,11 @@ builder.Services.AddScoped<ISkillRepository, SkillRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
 builder.Services.AddScoped<ISuggestionRepository, SuggestionRepository>();
+builder.Services.AddScoped<IPasswordResetTokenRepository, PasswordResetTokenRepository>();
+builder.Services.AddScoped<ICurriculumGenerationRepository, CurriculumGenerationRepository>();
 
 
 
-// Services
 builder.Services.AddScoped<ICertificationService, CertificationService>();
 builder.Services.AddScoped<IContactService, ContactService>();
 builder.Services.AddScoped<IExperienceService, ExperienceService>();
@@ -92,21 +104,60 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<ICurriculumService, CurriculumService>();
 builder.Services.AddScoped<IPdfService, PdfService>();
+builder.Services.AddHttpClient();
+builder.Services.AddScoped<IAIService, GoogleGeminiService>();
+builder.Services.AddScoped<IDedicatedCurriculumService, DedicatedCurriculumService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<IGoogleAuthService, GoogleAuthService>();
 
+var dataProtectionKeysPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "CurriculoInterativo", "DataProtection-Keys");
+Directory.CreateDirectory(dataProtectionKeysPath);
+builder.Services.AddDataProtection()
+    .PersistKeysToFileSystem(new DirectoryInfo(dataProtectionKeysPath))
+    .SetApplicationName("CurriculoInterativo");
 
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
-var secretKey = jwtSettings["SecretKey"] ?? throw new InvalidOperationException("JWT SecretKey não configurada");
+var secretKey = jwtSettings["SecretKey"] ?? throw new InvalidOperationException("JWT SecretKey nï¿½o configurada");
 
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = GoogleDefaults.AuthenticationScheme;
     options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
 })
-.AddJwtBearer(options =>
+.AddCookie("Cookies", cookieOptions =>
+{
+    cookieOptions.Cookie.Name = "CurriculoInterativo.Auth";
+    cookieOptions.Cookie.HttpOnly = true;
+    cookieOptions.Cookie.SameSite = SameSiteMode.Lax;
+    cookieOptions.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+    cookieOptions.ExpireTimeSpan = TimeSpan.FromMinutes(10);
+    cookieOptions.SlidingExpiration = true;
+    cookieOptions.Cookie.Path = "/";
+})
+.AddGoogle(GoogleDefaults.AuthenticationScheme, options =>
+{
+    var googleSettings = builder.Configuration.GetSection("GoogleOAuth");
+    options.ClientId = googleSettings["ClientId"] ?? throw new InvalidOperationException("Google ClientId nÃ£o configurado");
+    options.ClientSecret = googleSettings["ClientSecret"] ?? throw new InvalidOperationException("Google ClientSecret nÃ£o configurado");
+    options.CallbackPath = "/api/auth/google-callback";
+    options.SaveTokens = false;
+    options.SignInScheme = "Cookies";
+    
+    options.Events.OnRemoteFailure = async context =>
+    {
+        var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
+        logger.LogError("Erro no OAuth do Google: {Error}", context.Failure?.Message);
+        logger.LogError("Stack trace: {StackTrace}", context.Failure?.StackTrace);
+        context.HandleResponse();
+        context.Response.Redirect($"/index.html?error=google_auth_failed&details={Uri.EscapeDataString(context.Failure?.Message ?? "Unknown error")}");
+        await Task.CompletedTask;
+    };
+})
+.AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
 {
     options.SaveToken = true;
-    options.RequireHttpsMetadata = false; // Apenas para desenvolvimento
+    options.RequireHttpsMetadata = false;
     options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuer = true,
@@ -124,37 +175,37 @@ builder.Services.AddAuthentication(options =>
         OnAuthenticationFailed = context =>
         {
             var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
-            logger.LogError("Falha na autenticação: {Exception}", context.Exception);
+            logger.LogError("Falha na autenticaï¿½ï¿½o: {Exception}", context.Exception);
             return Task.CompletedTask;
         },
         OnChallenge = context =>
         {
             var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
-            logger.LogWarning("Token inválido ou ausente para: {Path}", context.Request.Path);
+            logger.LogWarning("Token invï¿½lido ou ausente para: {Path}", context.Request.Path);
             return Task.CompletedTask;
         }
     };
 });
 
-// Configuração de autorização
+// Configuraï¿½ï¿½o de autorizaï¿½ï¿½o
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("OwnerOnly", policy => policy.RequireRole("Owner"));
 });
 
-// Configuração do CORS
+// Configuraï¿½ï¿½o do CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowSpecificOrigin", policy =>
     {
-        policy.WithOrigins("http://localhost:3000", "https://localhost:3001") // URLs do seu frontend
+        policy.WithOrigins("http://localhost:3000", "https://localhost:3001")
               .AllowAnyMethod()
               .AllowAnyHeader()
               .AllowCredentials();
     });
 });
 
-// Configuração dos controllers
+// Configuraï¿½ï¿½o dos controllers
 builder.Services.AddControllers();
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {
@@ -163,18 +214,18 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
 });
 
 
-// Configuração do Swagger com suporte a JWT
+// Configuraï¿½ï¿½o do Swagger com suporte a JWT
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo
     {
-        Title = "Currículo Interativo API",
+        Title = "Currï¿½culo Interativo API",
         Version = "v1",
-        Description = "API para gerenciamento de currículo interativo com autenticação JWT"
+        Description = "API para gerenciamento de currï¿½culo interativo com autenticaï¿½ï¿½o JWT"
     });
 
-    // Configuração do JWT no Swagger
+    // Configuraï¿½ï¿½o do JWT no Swagger
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Description = "JWT Authorization header usando o esquema Bearer. Exemplo: \"Authorization: Bearer {token}\"",
@@ -202,7 +253,7 @@ builder.Services.AddSwaggerGen(c =>
         }
     });
 
-    // Incluir comentários XML
+    // Incluir comentï¿½rios XML
     var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
     var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
     if (File.Exists(xmlPath))
@@ -211,7 +262,7 @@ builder.Services.AddSwaggerGen(c =>
     }
 });
 
-// Configuração de logging
+// Configuraï¿½ï¿½o de logging
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 builder.Logging.AddDebug();
@@ -219,7 +270,7 @@ builder.Logging.AddDebug();
 var app = builder.Build();
 
 app.UseForwardedHeaders();
-//Configuraçãos para o frontend
+//Configuraï¿½ï¿½os para o frontend
 app.UseDefaultFiles();
 app.UseStaticFiles();
 
@@ -233,6 +284,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+// IMPORTANTE: UseAuthentication deve vir ANTES de UseAuthorization
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

@@ -1,0 +1,111 @@
+.dedicated-curriculum-section {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 30px;
+    margin: 30px 0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.dedicated-curriculum-section .form-group {
+    margin-bottom: 20px;
+}
+
+.dedicated-curriculum-section label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #2c3e50;
+    font-size: 14px;
+}
+
+.dedicated-curriculum-section .form-control {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #e0e0e0;
+    border-radius: 6px;
+    font-size: 14px;
+    font-family: inherit;
+    transition: border-color 0.3s ease;
+    box-sizing: border-box;
+}
+
+.dedicated-curriculum-section .form-control:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+.dedicated-curriculum-section textarea.form-control {
+    min-height: 200px;
+    resize: vertical;
+    line-height: 1.6;
+}
+
+.dedicated-curriculum-section .btn-submit {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 14px 28px;
+    border-radius: 6px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.dedicated-curriculum-section .btn-submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.dedicated-curriculum-section .btn-submit:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.dedicated-curriculum-section .loading {
+    text-align: center;
+    padding: 20px;
+    color: #3498db;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.dedicated-curriculum-section .loading i {
+    font-size: 20px;
+}
+
+#dedicated-curriculum-login-message {
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (max-width: 768px) {
+    .dedicated-curriculum-section {
+        padding: 20px;
+        margin: 20px 0;
+    }
+
+    .dedicated-curriculum-section .btn-submit {
+        width: 100%;
+        justify-content: center;
+    }
+}
+

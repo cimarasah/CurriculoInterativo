@@ -1,9 +1,20 @@
-const API_BASE_URL = 'http://localhost:5083/api'; // PRIMEIRA E ÚNICA DECLARAÇÃO
+// Detectar automaticamente a URL da API baseado no ambiente
+const API_BASE_URL = (() => {
+    // Se estiver em produção (Azure), usa a mesma origem
+    if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+        return window.location.origin + '/api';
+    }
+    // Se estiver em desenvolvimento local
+    return 'http://localhost:5083/api';
+})();
 
 // Inicialização
 document.addEventListener('DOMContentLoaded', function () {
     loadDashboard();
     setupFilterListeners();
+    checkAuthStatus();
+    // Processar callback do Google ao carregar a página
+    handleGoogleCallback();
 });
 
 async function loadDashboard() {
@@ -535,5 +546,455 @@ document.addEventListener('DOMContentLoaded', function () {
             }, 1500);
         });
     }
+
+    // Inicializar seção de currículo dedicado
+    initializeDedicatedCurriculum();
 });
-// CHAVE DE FECHAMENTO REMOVIDA AQUI
+
+// Funções para currículo dedicado
+function initializeDedicatedCurriculum() {
+    const section = document.getElementById('dedicated-curriculum-section');
+    const loginMessage = document.getElementById('dedicated-curriculum-login-message');
+    const form = document.getElementById('dedicated-curriculum-form');
+
+    if (!section) return;
+
+    // Verificar autenticação
+    const token = localStorage.getItem('token');
+    const isAuthenticated = !!token;
+
+    section.style.display = 'block';
+
+    if (isAuthenticated) {
+        if (loginMessage) loginMessage.style.display = 'none';
+        if (form) {
+            form.style.display = 'block';
+            // Remover listener anterior se existir e adicionar novo
+            const newForm = form.cloneNode(true);
+            form.parentNode.replaceChild(newForm, form);
+            document.getElementById('dedicated-curriculum-form').addEventListener('submit', handleDedicatedCurriculumSubmit);
+        }
+    } else {
+        if (loginMessage) loginMessage.style.display = 'block';
+        if (form) form.style.display = 'none';
+    }
+}
+
+function getAuthToken() {
+    return localStorage.getItem('token');
+}
+
+function isAuthenticated() {
+    return !!getAuthToken();
+}
+
+async function handleDedicatedCurriculumSubmit(e) {
+    e.preventDefault();
+
+    if (!isAuthenticated()) {
+        showDedicatedCurriculumError('Você precisa estar autenticado para usar esta funcionalidade.');
+        return;
+    }
+
+    const form = e.target;
+    const companyName = document.getElementById('company-name')?.value || '';
+    const jobDescription = document.getElementById('job-description')?.value || '';
+
+    if (!jobDescription || jobDescription.trim().length < 50) {
+        showDedicatedCurriculumError('A descrição da vaga deve ter pelo menos 50 caracteres.');
+        return;
+    }
+
+    const loading = document.getElementById('dedicated-curriculum-loading');
+    const errorDiv = document.getElementById('dedicated-curriculum-error');
+    const submitBtn = document.getElementById('generate-curriculum-btn');
+
+    // Mostrar loading e esconder erro
+    if (loading) loading.style.display = 'flex';
+    if (errorDiv) errorDiv.style.display = 'none';
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Gerando...';
+    }
+
+    try {
+        const token = getAuthToken();
+        const response = await fetch(`${API_BASE_URL}/dedicated-curriculum/generate`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                jobDescription: jobDescription.trim(),
+                companyName: companyName.trim() || null
+            })
+        });
+
+        if (response.status === 401) {
+            showDedicatedCurriculumError('Sua sessão expirou. Por favor, faça login novamente.');
+            localStorage.removeItem('token');
+            return;
+        }
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({ message: 'Erro ao gerar currículo' }));
+            showDedicatedCurriculumError(errorData.message || 'Erro ao gerar currículo. Tente novamente.');
+            return;
+        }
+
+        // Download do PDF
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+
+        // Extrair nome do arquivo do header Content-Disposition
+        const contentDisposition = response.headers.get('Content-Disposition');
+        let fileName = 'Curriculo_Dedicado.pdf';
+        if (contentDisposition) {
+            const fileNameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+            if (fileNameMatch && fileNameMatch[1]) {
+                fileName = fileNameMatch[1].replace(/['"]/g, '');
+                fileName = decodeURIComponent(fileName);
+            }
+        }
+
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+
+        // Limpar formulário
+        form.reset();
+
+    } catch (error) {
+        console.error('Erro ao gerar currículo dedicado:', error);
+        showDedicatedCurriculumError('Erro ao conectar com o servidor. Verifique sua conexão e tente novamente.');
+    } finally {
+        if (loading) loading.style.display = 'none';
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fas fa-magic"></i> Gerar Currículo Personalizado';
+        }
+    }
+}
+
+function showDedicatedCurriculumError(message) {
+    const errorDiv = document.getElementById('dedicated-curriculum-error');
+    if (errorDiv) {
+        errorDiv.textContent = message;
+        errorDiv.style.display = 'block';
+    }
+}
+
+// ========== FUNÇÕES DE AUTENTICAÇÃO ==========
+
+function checkAuthStatus() {
+    const token = localStorage.getItem('token');
+    const username = localStorage.getItem('username');
+    const loginBtn = document.getElementById('login-btn');
+    const userInfo = document.getElementById('user-info');
+    const userName = document.getElementById('user-name');
+
+    if (token && username) {
+        // Usuário está logado
+        if (loginBtn) loginBtn.style.display = 'none';
+        if (userInfo) userInfo.style.display = 'flex';
+        if (userName) userName.textContent = username;
+        
+        // Atualizar seção de currículo dedicado
+        initializeDedicatedCurriculum();
+    } else {
+        // Usuário não está logado
+        if (loginBtn) loginBtn.style.display = 'block';
+        if (userInfo) userInfo.style.display = 'none';
+    }
+}
+
+function openLoginModal() {
+    const modal = document.getElementById('login-modal');
+    if (modal) {
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden'; // Prevenir scroll
+        
+        // Limpar formulário e erros ao abrir
+        const form = document.getElementById('login-form');
+        if (form) form.reset();
+        const errorDiv = document.getElementById('login-error');
+        if (errorDiv) {
+            errorDiv.style.display = 'none';
+            errorDiv.textContent = '';
+        }
+        const loadingDiv = document.getElementById('login-loading');
+        if (loadingDiv) loadingDiv.style.display = 'none';
+        
+        // Focar no campo de email
+        const emailInput = document.getElementById('login-email');
+        if (emailInput) {
+            setTimeout(() => emailInput.focus(), 100);
+        }
+        
+        // Fechar modal ao clicar fora
+        modal.onclick = function(event) {
+            if (event.target === modal) {
+                closeLoginModal();
+            }
+        };
+        
+        // Fechar modal com ESC
+        document.addEventListener('keydown', handleModalEscape);
+    }
+}
+
+function handleModalEscape(event) {
+    if (event.key === 'Escape') {
+        const modal = document.getElementById('login-modal');
+        if (modal && modal.style.display === 'flex') {
+            closeLoginModal();
+        }
+    }
+}
+
+function closeLoginModal() {
+    const modal = document.getElementById('login-modal');
+    if (modal) {
+        modal.style.display = 'none';
+        document.body.style.overflow = 'auto';
+        
+        // Limpar formulário e erros ao fechar
+        const form = document.getElementById('login-form');
+        if (form) form.reset();
+        const errorDiv = document.getElementById('login-error');
+        if (errorDiv) {
+            errorDiv.style.display = 'none';
+            errorDiv.textContent = '';
+        }
+        const loadingDiv = document.getElementById('login-loading');
+        if (loadingDiv) loadingDiv.style.display = 'none';
+        
+        // Remover listener do ESC
+        document.removeEventListener('keydown', handleModalEscape);
+    }
+}
+
+// ========== FUNÇÕES DE AUTENTICAÇÃO ==========
+
+async function handleLogin(event) {
+    event.preventDefault();
+    
+    const email = document.getElementById('login-email').value.trim();
+    const password = document.getElementById('login-password').value;
+    const errorDiv = document.getElementById('login-error');
+    const loadingDiv = document.getElementById('login-loading');
+    const submitBtn = document.getElementById('login-submit-btn');
+    const form = document.getElementById('login-form');
+
+    // Esconder erro anterior
+    if (errorDiv) {
+        errorDiv.style.display = 'none';
+        errorDiv.textContent = '';
+    }
+
+    // Validar campos
+    if (!email || !password) {
+        showLoginError('Por favor, preencha todos os campos.');
+        return;
+    }
+
+    // Mostrar loading
+    if (loadingDiv) loadingDiv.style.display = 'flex';
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Entrando...';
+    }
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/auth/login`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                email: email,
+                password: password
+            })
+        });
+
+        const data = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+            const errorMessage = data.message || 'Erro ao fazer login. Verifique suas credenciais.';
+            showLoginError(errorMessage);
+            return;
+        }
+
+        // Login bem-sucedido
+        if (data.token) {
+            // Salvar tokens
+            localStorage.setItem('token', data.token);
+            localStorage.setItem('refreshToken', data.refreshToken || '');
+            localStorage.setItem('username', data.username || email.split('@')[0]);
+            localStorage.setItem('userRole', data.role || 'User');
+            if (data.email) {
+                localStorage.setItem('email', data.email);
+            }
+
+            // Atualizar UI
+            checkAuthStatus();
+            
+            // Fechar modal
+            closeLoginModal();
+            
+            // Limpar formulário
+            form.reset();
+            
+            // Mostrar mensagem de sucesso
+            alert(`Bem-vindo(a), ${data.username || email.split('@')[0]}!`);
+        } else {
+            showLoginError('Resposta inválida do servidor.');
+        }
+    } catch (error) {
+        console.error('Erro ao fazer login:', error);
+        showLoginError('Erro ao conectar com o servidor. Verifique sua conexão e tente novamente.');
+    } finally {
+        // Esconder loading
+        if (loadingDiv) loadingDiv.style.display = 'none';
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Entrar';
+        }
+    }
+}
+
+function showLoginError(message) {
+    const errorDiv = document.getElementById('login-error');
+    if (errorDiv) {
+        errorDiv.textContent = message;
+        errorDiv.style.display = 'block';
+        // Scroll para o erro
+        errorDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+}
+
+// ========== FUNÇÕES DE LOGIN COM GOOGLE ==========
+
+function loginWithGoogle() {
+    // Fechar modal antes de redirecionar
+    closeLoginModal();
+    // Redirecionar para o endpoint de login do Google
+    window.location.href = `${API_BASE_URL}/auth/google-login`;
+}
+
+function handleGoogleCallback() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const authStatus = urlParams.get('auth');
+    const tokensParam = urlParams.get('tokens');
+    const error = urlParams.get('error');
+    const details = urlParams.get('details');
+
+    if (error) {
+        let errorMessage = 'Erro ao fazer login com Google.';
+        switch (error) {
+            case 'google_auth_failed':
+                errorMessage = 'Falha na autenticação com Google.';
+                if (details) {
+                    errorMessage += `\n\nDetalhes: ${decodeURIComponent(details)}`;
+                } else {
+                    errorMessage += ' Tente novamente.';
+                }
+                break;
+            case 'google_info_incomplete':
+                errorMessage = 'Informações do Google incompletas. Tente novamente.';
+                break;
+            case 'google_callback_error':
+                errorMessage = 'Erro no processamento do login.';
+                if (details) {
+                    errorMessage += `\n\nDetalhes: ${decodeURIComponent(details)}`;
+                } else {
+                    errorMessage += ' Tente novamente.';
+                }
+                break;
+        }
+        
+        // Usar console para debug também
+        console.error('Erro no login Google:', error, details ? decodeURIComponent(details) : '');
+        
+        alert(errorMessage);
+        // Limpar URL
+        window.history.replaceState({}, document.title, window.location.pathname);
+        return;
+    }
+
+    if (authStatus === 'success' && tokensParam) {
+        try {
+            const decodedTokens = decodeURIComponent(tokensParam);
+            const tokensJson = atob(decodedTokens);
+            const tokenData = JSON.parse(tokensJson);
+
+            // Salvar tokens
+            localStorage.setItem('token', tokenData.token);
+            localStorage.setItem('refreshToken', tokenData.refreshToken);
+            localStorage.setItem('username', tokenData.username);
+            localStorage.setItem('userRole', tokenData.role);
+            if (tokenData.email) {
+                localStorage.setItem('email', tokenData.email);
+            }
+
+            // Atualizar UI
+            checkAuthStatus();
+            alert(`Bem-vindo(a), ${tokenData.username}!`);
+
+            // Limpar URL
+            window.history.replaceState({}, document.title, window.location.pathname);
+        } catch (e) {
+            console.error('Erro ao processar tokens do Google:', e);
+            alert('Erro ao processar informações de login. Tente novamente.');
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+    }
+}
+
+async function handleLogout() {
+    if (!confirm('Deseja realmente sair?')) {
+        return;
+    }
+
+    try {
+        const refreshToken = localStorage.getItem('refreshToken');
+        
+        if (refreshToken) {
+            // Tentar fazer logout no servidor
+            const token = localStorage.getItem('token');
+            if (token) {
+                await fetch(`${API_BASE_URL}/auth/logout`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        refreshToken: refreshToken
+                    })
+                }).catch(err => {
+                    console.error('Erro ao fazer logout no servidor:', err);
+                    // Continuar mesmo se falhar
+                });
+            }
+        }
+    } catch (error) {
+        console.error('Erro ao fazer logout:', error);
+    } finally {
+        // Limpar localStorage
+        localStorage.removeItem('token');
+        localStorage.removeItem('refreshToken');
+        localStorage.removeItem('username');
+        localStorage.removeItem('email');
+        localStorage.removeItem('userRole');
+        
+        // Atualizar UI
+        checkAuthStatus();
+        alert('Logout realizado com sucesso!');
+    }
+}

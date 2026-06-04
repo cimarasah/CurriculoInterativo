@@ -1,7 +1,11 @@
-﻿using CurriculoInterativo.Api.Models;
+﻿using CurriculoInterativo.Api.DTOs.JobApplicationDto;
+using CurriculoInterativo.Api.Models;
+using Markdig;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
+using DinkToPdf;
+using DinkToPdf.Contracts;
 
 namespace CurriculoInterativo.Api.Services.PdfService
 {
@@ -292,6 +296,222 @@ namespace CurriculoInterativo.Api.Services.PdfService
                 Enums.SkillCategory.Management => "Gestão e Metodologias",
                 _ => category.ToString()
             };
+        }
+
+        public byte[] GenerateDedicatedCurriculumPdf(DedicatedCurriculumModel model)
+        {
+            QuestPDF.Settings.License = LicenseType.Community;
+
+            var document = Document.Create(container =>
+            {
+                container.Page(page =>
+                {
+                    page.Size(PageSizes.A4);
+                    page.Margin(40);
+                    page.PageColor(Colors.White);
+
+                    // Cabeçalho
+                    page.Header().Element(c => ComposeDedicatedHeader(c, model));
+
+                    // Conteúdo principal
+                    page.Content().Element(c => ComposeDedicatedContent(c, model));
+
+                    // Rodapé
+                    page.Footer().AlignRight().Text(text =>
+                    {
+                        text.Span("Currículo dedicado gerado em: ");
+                        text.Span($"{model.GeneratedAt:dd/MM/yyyy HH:mm}")
+                            .FontSize(8)
+                            .Italic()
+                            .FontColor(Colors.Grey.Darken1);
+                    });
+                });
+            });
+
+            return document.GeneratePdf();
+        }
+
+        private void ComposeDedicatedHeader(IContainer container, DedicatedCurriculumModel model)
+        {
+            container.Column(column =>
+            {
+                if (!string.IsNullOrEmpty(model.CompanyName))
+                {
+                    column.Item().Text($"Currículo Dedicado - {model.CompanyName}")
+                        .FontSize(18)
+                        .Bold()
+                        .FontColor(Colors.Blue.Darken2);
+                    column.Item().PaddingTop(8);
+                }
+
+                column.Item().Text("INFORMAÇÕES DO CANDIDATO")
+                    .FontSize(20)
+                    .Bold()
+                    .FontColor(Colors.Blue.Darken2);
+
+                column.Item().PaddingTop(12).LineHorizontal(2).LineColor(Colors.Blue.Darken2);
+            });
+        }
+
+        private void ComposeDedicatedContent(IContainer container, DedicatedCurriculumModel model)
+        {
+            container.Column(column =>
+            {
+                AddField(column, "Candidato", model.Candidato);
+                AddField(column, "Residência", model.Residencia);
+                AddField(column, "Graduação", model.Graduacao);
+                AddField(column, "Atuação em empresas financeiras", model.AtuacaoEmpresasFinanceiras);
+                AddField(column, "Tempo como DEV", model.TempoComoDev);
+                AddField(column, "Tempo como .NET", model.TempoComoDotNet);
+                AddField(column, "Tempo com Java", model.TempoComJava);
+                AddField(column, "Principais tecnologias que já atuou", model.PrincipaisTecnologias);
+                AddField(column, "Mensageria (RabbitMQ, Amazon SQS, EC2, Kafka)", model.Mensageria);
+                AddField(column, "Aplicar sólidos skills de API design, Restful e Microservices", model.ApiDesignRestfulMicroservices);
+                AddField(column, "Conhecimento em Cloud (preferencialmente AWS)", model.ConhecimentoCloud);
+                AddField(column, "Docker e/ou Kubernetes", model.DockerKubernetes);
+                AddField(column, "Esteiras CI/CD", model.EsteirasCICD);
+                AddField(column, "Serverless", model.Serverless);
+                AddField(column, "Conhecimento de aplicações que utilizam banco de dados (NoSql e/ou SQL)", model.ConhecimentoBancosDados);
+                AddField(column, "Experiência com metodologias ágeis", model.ExperienciaMetodologiasAgeis);
+                AddField(column, "Clean Code", model.CleanCode);
+                AddField(column, "Vai precisar de equipamento para trabalhar ou tem preferência de usar o seu?", model.Equipamento);
+            });
+        }
+
+        private void AddField(QuestPDF.Fluent.ColumnDescriptor column, string label, string value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+                return;
+
+            column.Item().PaddingTop(15).Column(fieldColumn =>
+            {
+                fieldColumn.Item().Text(label)
+                    .FontSize(11)
+                    .Bold()
+                    .FontColor(Colors.Grey.Darken3);
+
+                fieldColumn.Item().PaddingTop(3).Text(value)
+                    .FontSize(10)
+                    .LineHeight(1.4f)
+                    .FontColor(Colors.Grey.Darken2);
+            });
+        }
+
+        public byte[] GeneratePdfFromMarkdown(string markdown)
+        {
+            try
+            {
+                // Converter Markdown para HTML usando Markdig
+                var pipeline = new MarkdownPipelineBuilder()
+                    .UseAdvancedExtensions()
+                    .Build();
+                
+                var html = Markdown.ToHtml(markdown, pipeline);
+
+                // Adicionar estilos CSS básicos para melhor formatação
+                var styledHtml = $@"
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset=""utf-8"">
+    <style>
+        body {{
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }}
+        h1, h2, h3 {{
+            color: #2c3e50;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }}
+        h1 {{
+            font-size: 24px;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }}
+        h2 {{
+            font-size: 20px;
+            border-bottom: 1px solid #ecf0f1;
+            padding-bottom: 5px;
+        }}
+        h3 {{
+            font-size: 16px;
+        }}
+        p {{
+            margin-bottom: 10px;
+        }}
+        ul, ol {{
+            margin-bottom: 15px;
+            padding-left: 30px;
+        }}
+        li {{
+            margin-bottom: 5px;
+        }}
+        strong {{
+            color: #2c3e50;
+        }}
+        a {{
+            color: #3498db;
+            text-decoration: none;
+        }}
+        a:hover {{
+            text-decoration: underline;
+        }}
+        code {{
+            background-color: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }}
+        pre {{
+            background-color: #f4f4f4;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }}
+        blockquote {{
+            border-left: 4px solid #3498db;
+            padding-left: 15px;
+            margin-left: 0;
+            color: #7f8c8d;
+        }}
+    </style>
+</head>
+<body>
+{html}
+</body>
+</html>";
+
+                // Converter HTML para PDF usando DinkToPdf
+                var converter = new SynchronizedConverter(new PdfTools());
+                var doc = new HtmlToPdfDocument()
+                {
+                    GlobalSettings = {
+                        ColorMode = ColorMode.Color,
+                        Orientation = Orientation.Portrait,
+                        PaperSize = PaperKind.A4,
+                        Margins = new MarginSettings { Top = 20, Bottom = 20, Left = 20, Right = 20 }
+                    },
+                    Objects = {
+                        new ObjectSettings() {
+                            HtmlContent = styledHtml,
+                            WebSettings = { DefaultEncoding = "utf-8" }
+                        }
+                    }
+                };
+
+                var pdf = converter.Convert(doc);
+                return pdf;
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException("Erro ao converter Markdown em PDF", ex);
+            }
         }
     }
 }

@@ -1,23 +1,30 @@
-﻿using CurriculoInterativo.Api.DTOs.CurriculumDto;
+﻿using AutoMapper;
+using CurriculoInterativo.Api.DTOs;
+using CurriculoInterativo.Api.DTOs.CurriculumDto;
 using CurriculoInterativo.Api.Entities;
 using CurriculoInterativo.Api.Repositories.SuggestionRepository;
+using System.ComponentModel.DataAnnotations;
 
 namespace CurriculoInterativo.Api.Services.SuggestionService
 {
     public class SuggestionService : ISuggestionService
     {
-        private readonly ISuggestionRepository _suggestionRepository;
+        private readonly ISuggestionRepository _repository;
         private readonly ILogger<SuggestionService> _logger;
+        private readonly IMapper _mapper;
+
 
 
         public SuggestionService(
-            ISuggestionRepository suggestionRepository,
-            ILogger<SuggestionService> logger)
+            ISuggestionRepository repository,
+            ILogger<SuggestionService> logger, 
+            IMapper mapper)
         {
-            _suggestionRepository = suggestionRepository;
+            _repository = repository;
             _logger = logger;
+            _mapper = mapper;
         }
-        private async Task RegisterSuggestionAsync(
+        public async Task RegisterSuggestionAsync(
             CurriculumDownloadRequest request,
             string? ipAddress,
             string? userAgent)
@@ -36,7 +43,7 @@ namespace CurriculoInterativo.Api.Services.SuggestionService
                     RequestedAt = DateTime.UtcNow,
                 };
 
-                await _suggestionRepository.AddAsync(newSuggestion);
+                await _repository.AddAsync(newSuggestion);
 
                 _logger.LogInformation(
                     "Nova sugestão registrada: {Email} - {Name}",
@@ -52,6 +59,17 @@ namespace CurriculoInterativo.Api.Services.SuggestionService
                     request.Email);
                 throw;
             }
+        }
+        public async Task<SuggestionRequest> CreateSuggestionAsync(SuggestionRequest suggestionDto)
+        {
+            if (suggestionDto == null)
+                throw new ValidationException("Dados do contato não podem ser nulos");
+
+            var contact = _mapper.Map<Suggestion>(suggestionDto);
+
+            await _repository.AddAsync(contact);
+
+            return _mapper.Map<SuggestionRequest>(contact);
         }
     }
 }

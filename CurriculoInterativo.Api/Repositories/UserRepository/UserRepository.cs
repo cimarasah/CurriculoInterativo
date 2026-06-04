@@ -36,5 +36,18 @@ namespace CurriculoInterativo.Api.Repositories.UserRepository
                 .AsNoTracking()
                 .AnyAsync(u => u.Username.ToLower() == username.ToLower());
         }
+
+        public async Task<User?> GetByEmailForUpdateAsync(string email)
+        {
+            return await _dbSet
+                .FirstOrDefaultAsync(u => u.Email.ToLower() == email.ToLower());
+        }
+
+        public async Task<User?> GetByGoogleIdAsync(string googleId)
+        {
+            return await _dbSet
+                .AsNoTracking()
+                .FirstOrDefaultAsync(u => u.GoogleId == googleId);
+        }
     }
 }

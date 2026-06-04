@@ -16,8 +16,13 @@ namespace CurriculoInterativo.Api.Entities
         [StringLength(255)]
         public string Email { get; set; } = string.Empty;
 
-        [Required]
-        public string PasswordHash { get; set; } = string.Empty;
+        public string? PasswordHash { get; set; } // Opcional para usuários Google
+
+        [StringLength(255)]
+        public string? GoogleId { get; set; } // ID do Google OAuth
+
+        [StringLength(50)]
+        public string? Provider { get; set; } // "Google" ou null para login tradicional
 
         [Required]
         [StringLength(50)]
