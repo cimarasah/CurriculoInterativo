@@ -19,6 +19,8 @@ namespace CurriculoInterativo.Api
         public DbSet<Responsibility> Responsibilities { get; set; }
         public DbSet<User> Users { get; set; }
         public DbSet<RefreshToken> RefreshTokens { get; set; }
+        public DbSet<PasswordResetToken> PasswordResetTokens { get; set; }
+        public DbSet<CurriculumGeneration> CurriculumGenerations { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -32,8 +34,11 @@ namespace CurriculoInterativo.Api
                 entity.HasIndex(e => e.Username).IsUnique();
                 entity.Property(e => e.Email).IsRequired().HasMaxLength(255);
                 entity.Property(e => e.Username).IsRequired().HasMaxLength(100);
-                entity.Property(e => e.PasswordHash).IsRequired();
+                entity.Property(e => e.PasswordHash).HasMaxLength(500); // Opcional para Google
+                entity.Property(e => e.GoogleId).HasMaxLength(255);
+                entity.Property(e => e.Provider).HasMaxLength(50);
                 entity.Property(e => e.Role).IsRequired().HasMaxLength(50).HasDefaultValue("User");
+                entity.HasIndex(e => e.GoogleId).IsUnique().HasFilter("[GoogleId] IS NOT NULL");
                 entity.Property(e => e.IsActive).HasDefaultValue(true);
                 entity.Property(e => e.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
             });
@@ -55,6 +60,46 @@ namespace CurriculoInterativo.Api
                       .OnDelete(DeleteBehavior.Cascade);
 
                 entity.HasIndex(e => e.Token).IsUnique();
+            });
+            #endregion
+
+            #region Configuração PasswordResetToken
+            modelBuilder.Entity<PasswordResetToken>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Token).IsRequired().HasMaxLength(500);
+                entity.Property(e => e.ExpiresAt).IsRequired();
+                entity.Property(e => e.IsUsed).HasDefaultValue(false);
+                entity.Property(e => e.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
+
+                entity.HasOne(e => e.User)
+                      .WithMany()
+                      .HasForeignKey(e => e.UserId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasIndex(e => e.Token).IsUnique();
+                entity.HasIndex(e => new { e.UserId, e.IsUsed });
+            });
+            #endregion
+
+            #region Configuração CurriculumGeneration
+            modelBuilder.Entity<CurriculumGeneration>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.IpAddress).HasMaxLength(45);
+                entity.Property(e => e.UserAgent).HasMaxLength(500);
+                entity.Property(e => e.CompanyName).HasMaxLength(200);
+                entity.Property(e => e.JobDescriptionPreview).HasMaxLength(500);
+                entity.Property(e => e.Status).IsRequired().HasMaxLength(50).HasDefaultValue("Success");
+                entity.Property(e => e.GeneratedAt).HasDefaultValueSql("GETUTCDATE()");
+
+                entity.HasOne(e => e.User)
+                      .WithMany()
+                      .HasForeignKey(e => e.UserId)
+                      .OnDelete(DeleteBehavior.SetNull);
+
+                entity.HasIndex(e => new { e.UserId, e.GeneratedAt });
+                entity.HasIndex(e => new { e.IpAddress, e.GeneratedAt });
             });
             #endregion
 

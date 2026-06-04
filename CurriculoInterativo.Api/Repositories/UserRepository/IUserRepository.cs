@@ -8,5 +8,7 @@ namespace CurriculoInterativo.Api.Repositories.UserRepository
         Task<User?> GetByUsernameAsync(string username);
         Task<bool> ExistsByEmailAsync(string email);
         Task<bool> ExistsByUsernameAsync(string username);
+        Task<User?> GetByEmailForUpdateAsync(string email);
+        Task<User?> GetByGoogleIdAsync(string googleId);
     }
 }

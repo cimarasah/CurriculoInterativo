@@ -15,23 +15,7 @@ namespace CurriculoInterativo.Api.Controllers
             _suggestionService = suggestionService;
         }
 
-        /// <summary>
-        /// Retorna as informações de habilidade
-        /// </summary>
-        /// <returns>Informações de habilidade</returns>
-        [HttpGet]
-        public async Task<ActionResult<SuggestionResponse>> GetSuggestion()
-        {
-            try
-            {
-                var Suggestion = await _suggestionService.re();
-                return Ok(Suggestion);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Erro interno do servidor: {ex.Message}");
-            }
-        }
+        // Endpoint removido - funcionalidade não implementada
     }
 }
 

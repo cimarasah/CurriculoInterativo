@@ -17,6 +17,8 @@
     <link rel="stylesheet" href="css/projects.css">
     <link rel="stylesheet" href="css/skills.css">
     <link rel="stylesheet" href="css/suggestions.css">
+    <link rel="stylesheet" href="css/dedicated-curriculum.css">
+    <link rel="stylesheet" href="css/auth.css">
     <link rel="stylesheet" href="css/footer.css">
 
     <!-- Responsividade -->
@@ -37,9 +39,87 @@
                 <div class="version">
                     <span class="version-badge">v1.0.0</span>
                 </div>
+                <div class="auth-buttons">
+                    <button id="login-btn" class="btn-login" onclick="openLoginModal()">
+                        <i class="fas fa-sign-in-alt"></i> Login
+                    </button>
+                    <div id="user-info" style="display: none;">
+                        <span id="user-name" style="margin-right: 10px;"></span>
+                        <button id="logout-btn" class="btn-logout" onclick="handleLogout()">
+                            <i class="fas fa-sign-out-alt"></i> Sair
+                        </button>
+                    </div>
+                </div>
             </div>
             <p class="subtitle">Currículo Interativo - Demonstração de Habilidades Técnicas</p>
         </header>
+
+        <!-- Login Modal -->
+        <div id="login-modal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2><i class="fas fa-lock"></i> Login</h2>
+                    <button class="modal-close" onclick="closeLoginModal()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <!-- Mensagem de erro -->
+                    <div id="login-error" class="error-message" style="display: none;"></div>
+                    
+                    <!-- Loading -->
+                    <div id="login-loading" class="modal-loading" style="display: none;">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <span>Entrando...</span>
+                    </div>
+
+                    <!-- Formulário de Login Tradicional -->
+                    <form id="login-form" onsubmit="handleLogin(event)">
+                        <div class="form-group">
+                            <label for="login-email">
+                                <i class="fas fa-envelope"></i> Email
+                            </label>
+                            <input 
+                                type="email" 
+                                id="login-email" 
+                                class="form-control" 
+                                placeholder="seu@email.com" 
+                                required
+                                autocomplete="email">
+                        </div>
+                        <div class="form-group">
+                            <label for="login-password">
+                                <i class="fas fa-key"></i> Senha
+                            </label>
+                            <input 
+                                type="password" 
+                                id="login-password" 
+                                class="form-control" 
+                                placeholder="Sua senha" 
+                                required
+                                autocomplete="current-password">
+                        </div>
+                        <button type="submit" class="btn-submit" id="login-submit-btn">
+                            <i class="fas fa-sign-in-alt"></i> Entrar
+                        </button>
+                    </form>
+
+                    <!-- Divisor -->
+                    <div class="login-divider">
+                        <span>ou</span>
+                    </div>
+
+                    <!-- Botão Google -->
+                    <button onclick="loginWithGoogle()" class="btn-google">
+                        <svg width="20" height="20" viewBox="0 0 24 24">
+                            <path fill="white" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                            <path fill="white" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                            <path fill="white" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                            <path fill="white" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                        </svg>
+                        Entrar com Google
+                    </button>
+                </div>
+            </div>
+        </div>
 
         <!-- API Info -->
         <section class="api-info">
@@ -104,6 +184,43 @@
                 <div class="stat-label">Tecnologias</div>
             </div>
         </div>
+        <!-- Dedicated Curriculum -->
+        <section class="dedicated-curriculum-section" id="dedicated-curriculum-section" style="display: none;">
+            <h2 class="section-title">
+                <i class="fas fa-file-alt"></i>
+                Currículo Dedicado à Vaga
+            </h2>
+            <p style="color: #7f8c8d; margin-bottom: 20px;">
+                Cole a descrição completa da vaga abaixo. A IA analisará e gerará um currículo personalizado baseado nos seus dados.
+            </p>
+            <div id="dedicated-curriculum-login-message" style="display: none; padding: 20px; background-color: #fff3cd; border: 1px solid #ffc107; border-radius: 5px; margin-bottom: 20px;">
+                <p style="color: #856404; margin: 0;">
+                    <i class="fas fa-lock"></i> Esta funcionalidade requer autenticação. Por favor, faça login para continuar.
+                </p>
+            </div>
+            <form id="dedicated-curriculum-form">
+                <div class="form-group">
+                    <label for="company-name">Nome da Empresa (opcional)</label>
+                    <input type="text" id="company-name" class="form-control" placeholder="Ex: Stone Tech, CI&T, etc.">
+                </div>
+                <div class="form-group">
+                    <label for="job-description">Descrição da Vaga *</label>
+                    <textarea id="job-description" class="form-control" rows="10" placeholder="Cole aqui a descrição completa da vaga..." required></textarea>
+                    <small style="color: #7f8c8d; display: block; margin-top: 5px;">
+                        Mínimo de 50 caracteres. Inclua requisitos, tecnologias, experiência necessária, etc.
+                    </small>
+                </div>
+                <button type="submit" class="btn-submit" id="generate-curriculum-btn">
+                    <i class="fas fa-magic"></i> Gerar Currículo Personalizado
+                </button>
+            </form>
+            <div class="loading" id="dedicated-curriculum-loading" style="display: none;">
+                <i class="fas fa-spinner fa-spin"></i> 
+                <span>Analisando vaga e gerando currículo personalizado... Isso pode levar alguns segundos.</span>
+            </div>
+            <div id="dedicated-curriculum-error" style="display: none; padding: 15px; background-color: #f8d7da; border: 1px solid #f5c6cb; border-radius: 5px; margin-top: 15px; color: #721c24;">
+            </div>
+        </section>
 
         <!-- Companies -->
         <section class="logos-section">
@@ -198,6 +315,7 @@
             </div>
         </section>
 
+        
         <!-- Footer -->
         <footer class="footer">
             <p>Desenvolvido com <i class="fas fa-heart" style="color: #e74c3c;"></i> por Cimara Sá</p>
